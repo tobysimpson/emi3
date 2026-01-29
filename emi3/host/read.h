@@ -8,15 +8,10 @@
 #ifndef io_h
 #define io_h
 
-#define ROOT_IO   "/Users/toby/Downloads"
+#define ROOT_READ   "/Users/toby/Downloads"
 
 
-struct flt3
-{
-    float x;
-    float y;
-    float z;
-};
+
 
 
 void read_raw(void);
@@ -29,11 +24,11 @@ void read_raw(void)
     char file1_name[250];
     
     
-    sprintf(file1_name, "%s/bb.raw", ROOT_IO);
+    sprintf(file1_name, "%s/xx.raw", ROOT_READ);
     
     //mem
 //    float bb[5][2];
-    struct flt3 *bb = malloc(10*sizeof(struct flt3));
+
     
     //open
     file1 = fopen(file1_name,"rb");
@@ -43,14 +38,15 @@ void read_raw(void)
     fseek(file1, 0, SEEK_SET);
     printf("%ld\n", n);
 
+    struct flt3 *bb = malloc(n*sizeof(struct flt3));
     
     fread(bb, sizeof(struct flt3), n, file1);
     fclose(file1);
     
 
-    for (int i = 0; i < n; i++)
+    for (int i = 0; i < 100; i++)
     {
-        printf("%f %f %f\n", bb[i].x, bb[i].y, bb[i].z);
+        printf("%e %e %e\n", bb[i].x, bb[i].y, bb[i].z);
     }
 
     free(bb);
