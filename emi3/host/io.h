@@ -10,6 +10,15 @@
 
 #define ROOT_IO   "/Users/toby/Downloads"
 
+
+struct flt3
+{
+    float x;
+    float y;
+    float z;
+};
+
+
 void read_raw(void);
 //fwrite(ptr1, sizeof(float), msh->nv_tot, file1);
 
@@ -22,22 +31,31 @@ void read_raw(void)
     
     sprintf(file1_name, "%s/bb.raw", ROOT_IO);
     
-    //out
-    float bb[10];
+    //mem
+//    float bb[5][2];
+    struct flt3 *bb = malloc(10*sizeof(struct flt3));
     
+    //open
     file1 = fopen(file1_name,"rb");
     
-    fread(bb, sizeof(float), 10, file1);
+    fseek(file1, 0, SEEK_END);
+    long n = ftell(file1)/sizeof(struct flt3);
+    fseek(file1, 0, SEEK_SET);
+    printf("%ld\n", n);
+
     
-    
-    for (int i = 0; i < 10; i++)
-    {
-        printf("%f\n", bb[i]);
-    }
-    
-    
-    //clean up
+    fread(bb, sizeof(struct flt3), n, file1);
     fclose(file1);
+    
+
+    for (int i = 0; i < n; i++)
+    {
+        printf("%f %f %f\n", bb[i].x, bb[i].y, bb[i].z);
+    }
+
+    free(bb);
+    
+    
     
     return;
 }
