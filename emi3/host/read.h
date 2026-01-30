@@ -23,7 +23,7 @@ long flen(FILE* file1)
 }
 
 
-void read_dbl3(char* dsc)
+void read_flt3(char* dsc)
 {
     FILE* file1;
     char file1_name[250];
@@ -32,12 +32,12 @@ void read_dbl3(char* dsc)
     
     file1 = fopen(file1_name,"rb");
     
-    long n = flen(file1)/sizeof(struct dbl3);
+    long n = flen(file1)/sizeof(struct flt3);
     printf("%s %ld\n", dsc, n);
 
-    struct dbl3 *bb = malloc(n*sizeof(struct dbl3));
+    struct flt3 *bb = malloc(n*sizeof(struct flt3));
     
-    fread(bb, sizeof(struct dbl3), n, file1);
+    fread(bb, sizeof(struct flt3), n, file1);
     fclose(file1);
     
 
@@ -52,7 +52,7 @@ void read_dbl3(char* dsc)
 }
 
 
-void read_lng1(char* dsc)
+void read_int1(char* dsc)
 {
     FILE* file1;
     char file1_name[250];
@@ -61,11 +61,11 @@ void read_lng1(char* dsc)
     
     file1 = fopen(file1_name,"rb");
     
-    long n = flen(file1)/sizeof(long);
+    long n = flen(file1)/sizeof(int);
     printf("%s %ld\n", dsc, n);
     
 
-    long *bb = malloc(n*sizeof(long));
+    int *bb = malloc(n*sizeof(int));
     
     fread(bb, sizeof(long), n, file1);
     fclose(file1);
@@ -73,7 +73,7 @@ void read_lng1(char* dsc)
 
     for (int i = 0; i < 10; i++)
     {
-        printf("%6ld\n", bb[i]);
+        printf("%6d\n", bb[i]);
     }
 
     free(bb);
@@ -82,7 +82,7 @@ void read_lng1(char* dsc)
 }
 
 
-void read_lng4(char* dsc)
+void read_int4(char* dsc)
 {
     FILE* file1;
     char file1_name[250];
@@ -91,19 +91,19 @@ void read_lng4(char* dsc)
     
     file1 = fopen(file1_name,"rb");
     
-    long n = flen(file1)/sizeof(struct lng4);
+    long n = flen(file1)/sizeof(struct int4);
     printf("%s %ld\n", dsc, n);
     
 
-    struct lng4 *bb = malloc(n*sizeof(struct lng4));
+    struct int4 *bb = malloc(n*sizeof(struct int4));
     
-    fread(bb, sizeof(struct lng4), n, file1);
+    fread(bb, sizeof(struct int4), n, file1);
     fclose(file1);
     
 
     for (int i = 0; i < 10; i++)
     {
-        printf("%6ld %6ld %6ld %6ld\n", bb[i].x, bb[i].y, bb[i].z, bb[i].w);
+        printf("%6d %6d %6d %6d\n", bb[i].x, bb[i].y, bb[i].z, bb[i].w);
     }
 
     free(bb);

@@ -15,7 +15,6 @@ struct int3
     int z;
 };
 
-
 struct int4
 {
     int x;
@@ -38,42 +37,6 @@ struct flt4
     float z;
     float w;
 };
-
-
-struct lng3
-{
-    long x;
-    long y;
-    long z;
-};
-
-struct lng4
-{
-    long x;
-    long y;
-    long z;
-    long w;
-};
-
-
-struct dbl3
-{
-    double x;
-    double y;
-    double z;
-};
-
-struct dbl4
-{
-    double x;
-    double y;
-    double z;
-    double w;
-};
-
-
-
-
 
 
 

@@ -20,9 +20,9 @@ int main(int argc, const char * argv[])
     printf("%s\n", ROOT_READ);
     printf("%s\n", ROOT_WRITE);
     
-    read_dbl3("geom");
-    read_lng4("topo");
-    read_lng1("tags");
+    read_flt3("geom");
+    read_int4("topo");
+    read_int1("tags");
     
     write_xmf(0);
     
