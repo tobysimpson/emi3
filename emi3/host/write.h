@@ -27,15 +27,28 @@ void write_xmf(int idx)
     fprintf(file1,"<?xml version=\"1.0\"?>\n");
     fprintf(file1,"<Xdmf xmlns:xi=\"http://www.w3.org/2001/XInclude\" Version=\"3.0\">\n");
     fprintf(file1,"  <Domain>\n");
-    fprintf(file1,"    <Grid Name=\"tets\">\n");
+    fprintf(file1,"    <Grid Name=\"ele\">\n");
     fprintf(file1,"      <Geometry Type=\"XYZ\">\n");
-    fprintf(file1,"        <DataItem Format=\"Binary\" DataType=\"Float\" Precision=\"4\" Endian=\"Little\" Dimensions=\"24335 3\">geom.raw</DataItem>\n");
+    fprintf(file1,"        <DataItem Format=\"Binary\" DataType=\"Float\" Precision=\"4\" Endian=\"Little\" Dimensions=\"24335 3\">vtx_xx.raw</DataItem>\n");
     fprintf(file1,"      </Geometry>\n");
-    fprintf(file1,"      <Topology Type=\"Tetrahedron\" NumberOfElements=\"140004\">\n");
-    fprintf(file1,"        <DataItem Format=\"Binary\" DataType=\"Int\" Precision=\"4\" Endian=\"Little\" Dimensions=\"140004 4\">topo.raw</DataItem>\n");
+    fprintf(file1,"      <Topology TopologyType=\"Tetrahedron\" NumberOfElements=\"140004\">\n");
+    fprintf(file1,"        <DataItem Format=\"Binary\" DataType=\"Int\" Precision=\"4\" Endian=\"Little\" Dimensions=\"140004 4\">ele_aa.raw</DataItem>\n");
     fprintf(file1,"      </Topology>\n");
-    fprintf(file1,"      <Attribute Name=\"tags\" AttributeType=\"Scalar\" Center=\"Cell\">\n");
-    fprintf(file1,"        <DataItem Format=\"Binary\" DataType=\"Int\" Precision=\"4\" Endian=\"Little\" Dimensions=\"140004\">tags.raw</DataItem>\n");
+    fprintf(file1,"      <Attribute Name=\"ele_gg\" AttributeType=\"Scalar\" Center=\"Cell\">\n");
+    fprintf(file1,"        <DataItem Format=\"Binary\" DataType=\"Int\" Precision=\"4\" Endian=\"Little\" Dimensions=\"140004\">ele_gg.raw</DataItem>\n");
+    fprintf(file1,"      </Attribute>\n");
+    fprintf(file1,"    </Grid>\n");
+    fprintf(file1,"    <Grid Name=\"fac\">\n");
+    fprintf(file1,"      <xi:include xpointer=\"xpointer(/Xdmf/Domain/Grid/Geometry)\"/>\n");
+//    fprintf(file1,"      <Geometry Type=\"XYZ\">\n");
+////    fprintf(file1,"        <DataItem Reference=\"XML\">/Xdmf/Domain/Geometry</DataItem>\n");
+//    fprintf(file1,"        <DataItem Format=\"Binary\" DataType=\"Float\" Precision=\"4\" Endian=\"Little\" Dimensions=\"24335 3\">vtx_xx.raw</DataItem>\n");
+//    fprintf(file1,"      </Geometry>\n");
+    fprintf(file1,"      <Topology TopologyType=\"Triangle\" NumberOfElements=\"282582\">\n");
+    fprintf(file1,"        <DataItem Format=\"Binary\" DataType=\"Int\" Precision=\"4\" Endian=\"Little\" Dimensions=\"282582 3\">fac_aa.raw</DataItem>\n");
+    fprintf(file1,"      </Topology>\n");
+    fprintf(file1,"      <Attribute Name=\"fac_gg\" AttributeType=\"Scalar\" Center=\"Cell\">\n");
+    fprintf(file1,"        <DataItem Format=\"Binary\" DataType=\"Int\" Precision=\"4\" Endian=\"Little\" Dimensions=\"282582\">fac_gg.raw</DataItem>\n");
     fprintf(file1,"      </Attribute>\n");
     fprintf(file1,"    </Grid>\n");
     fprintf(file1,"  </Domain>\n");
@@ -46,3 +59,22 @@ void write_xmf(int idx)
 }
 
 #endif /* write_h */
+
+
+
+//fprintf(file1,"<?xml version=\"1.0\"?>\n");
+//fprintf(file1,"<Xdmf xmlns:xi=\"http://www.w3.org/2001/XInclude\" Version=\"3.0\">\n");
+//fprintf(file1,"  <Domain>\n");
+//fprintf(file1,"    <Grid Name=\"tets\">\n");
+//fprintf(file1,"      <Geometry Type=\"XYZ\">\n");
+//fprintf(file1,"        <DataItem Format=\"Binary\" DataType=\"Float\" Precision=\"4\" Endian=\"Little\" Dimensions=\"24335 3\">vtx_xx.raw</DataItem>\n");
+//fprintf(file1,"      </Geometry>\n");
+//fprintf(file1,"      <Topology Type=\"Tetrahedron\" NumberOfElements=\"140004\">\n");
+//fprintf(file1,"        <DataItem Format=\"Binary\" DataType=\"Int\" Precision=\"4\" Endian=\"Little\" Dimensions=\"140004 4\">ele_aa.raw</DataItem>\n");
+//fprintf(file1,"      </Topology>\n");
+//fprintf(file1,"      <Attribute Name=\"tags\" AttributeType=\"Scalar\" Center=\"Cell\">\n");
+//fprintf(file1,"        <DataItem Format=\"Binary\" DataType=\"Int\" Precision=\"4\" Endian=\"Little\" Dimensions=\"140004\">ele_gg.raw</DataItem>\n");
+//fprintf(file1,"      </Attribute>\n");
+//fprintf(file1,"    </Grid>\n");
+//fprintf(file1,"  </Domain>\n");
+//fprintf(file1,"</Xdmf>\n");
