@@ -5,58 +5,83 @@
 //  Created by Toby Simpson on 29.01.2026.
 //
 
-#ifndef io_h
-#define io_h
+#ifndef read_h
+#define read_h
 
 #define ROOT_READ   "/Users/toby/Downloads"
 
 
 
+//file length bytes
+long file_len(FILE* file1)
+{
+    fseek(file1, 0, SEEK_END);
+    long n = ftell(file1);
+    fseek(file1, 0, SEEK_SET);
+    
+    return n;
+}
 
 
-void read_raw(void);
-//fwrite(ptr1, sizeof(float), msh->nv_tot, file1);
-
-//write raw
-void read_raw(void)
+void read_dbl3(char* dsc)
 {
     FILE* file1;
     char file1_name[250];
     
+    sprintf(file1_name, "%s/%s.raw", ROOT_READ, dsc);
     
-    sprintf(file1_name, "%s/xx.raw", ROOT_READ);
-    
-    //mem
-//    float bb[5][2];
-
-    
-    //open
     file1 = fopen(file1_name,"rb");
     
-    fseek(file1, 0, SEEK_END);
-    long n = ftell(file1)/sizeof(struct flt3);
-    fseek(file1, 0, SEEK_SET);
-    printf("%ld\n", n);
+    long n = file_len(file1)/sizeof(struct dbl3);
+    printf("%s %ld\n", dsc, n);
 
-    struct flt3 *bb = malloc(n*sizeof(struct flt3));
+    struct dbl3 *bb = malloc(n*sizeof(struct dbl3));
     
-    fread(bb, sizeof(struct flt3), n, file1);
+    fread(bb, sizeof(struct dbl3), n, file1);
     fclose(file1);
     
 
-    for (int i = 0; i < 100; i++)
+    for (int i = 0; i < 10; i++)
     {
         printf("%e %e %e\n", bb[i].x, bb[i].y, bb[i].z);
     }
 
     free(bb);
+
+    return;
+}
+
+
+void read_lng4(char* dsc)
+{
+    FILE* file1;
+    char file1_name[250];
     
+    sprintf(file1_name, "%s/%s.raw", ROOT_READ, dsc);
     
+    file1 = fopen(file1_name,"rb");
     
+    long n = file_len(file1)/sizeof(struct lng4);
+    printf("%s %ld\n", dsc, n);
+    
+
+    struct lng4 *bb = malloc(n*sizeof(struct lng4));
+    
+    fread(bb, sizeof(struct lng4), n, file1);
+    fclose(file1);
+    
+
+    for (int i = 0; i < 10; i++)
+    {
+        printf("%6ld %6ld %6ld %6ld\n", bb[i].x, bb[i].y, bb[i].z, bb[i].w);
+    }
+
+    free(bb);
+
     return;
 }
 
 
 
 
-#endif /* io_h */
+#endif // !read_h
