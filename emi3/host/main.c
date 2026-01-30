@@ -22,6 +22,7 @@ int main(int argc, const char * argv[])
     
     read_dbl3("geom");
     read_lng4("topo");
+    read_lng1("tags");
     
     write_xmf(0);
     

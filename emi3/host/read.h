@@ -13,7 +13,7 @@
 
 
 //file length bytes
-long file_len(FILE* file1)
+long flen(FILE* file1)
 {
     fseek(file1, 0, SEEK_END);
     long n = ftell(file1);
@@ -32,7 +32,7 @@ void read_dbl3(char* dsc)
     
     file1 = fopen(file1_name,"rb");
     
-    long n = file_len(file1)/sizeof(struct dbl3);
+    long n = flen(file1)/sizeof(struct dbl3);
     printf("%s %ld\n", dsc, n);
 
     struct dbl3 *bb = malloc(n*sizeof(struct dbl3));
@@ -52,6 +52,36 @@ void read_dbl3(char* dsc)
 }
 
 
+void read_lng1(char* dsc)
+{
+    FILE* file1;
+    char file1_name[250];
+    
+    sprintf(file1_name, "%s/%s.raw", ROOT_READ, dsc);
+    
+    file1 = fopen(file1_name,"rb");
+    
+    long n = flen(file1)/sizeof(long);
+    printf("%s %ld\n", dsc, n);
+    
+
+    long *bb = malloc(n*sizeof(long));
+    
+    fread(bb, sizeof(long), n, file1);
+    fclose(file1);
+    
+
+    for (int i = 0; i < 10; i++)
+    {
+        printf("%6ld\n", bb[i]);
+    }
+
+    free(bb);
+
+    return;
+}
+
+
 void read_lng4(char* dsc)
 {
     FILE* file1;
@@ -61,7 +91,7 @@ void read_lng4(char* dsc)
     
     file1 = fopen(file1_name,"rb");
     
-    long n = file_len(file1)/sizeof(struct lng4);
+    long n = flen(file1)/sizeof(struct lng4);
     printf("%s %ld\n", dsc, n);
     
 
