@@ -19,7 +19,7 @@ void write_xmf(int idx)
     char file1_name[250];
     
     //file name
-    sprintf(file1_name, "%s/msh.%02d.xdmf", ROOT_WRITE, idx);
+    sprintf(file1_name, "%s/msh.%02d.xmf", ROOT_WRITE, idx);
     
     //open
     file1 = fopen(file1_name,"w");
@@ -29,26 +29,25 @@ void write_xmf(int idx)
     fprintf(file1,"  <Domain>\n");
     fprintf(file1,"    <Grid Name=\"ele\">\n");
     fprintf(file1,"      <Geometry Type=\"XYZ\">\n");
-    fprintf(file1,"        <DataItem Format=\"Binary\" DataType=\"Float\" Precision=\"4\" Endian=\"Little\" Dimensions=\"24335 3\">vtx_xx.raw</DataItem>\n");
+    fprintf(file1,"        <DataItem Format=\"Binary\" DataType=\"Float\" Precision=\"4\" Endian=\"Little\" Dimensions=\"24335 3\">vtx_xyz.raw</DataItem>\n");
     fprintf(file1,"      </Geometry>\n");
     fprintf(file1,"      <Topology TopologyType=\"Tetrahedron\" NumberOfElements=\"140004\">\n");
-    fprintf(file1,"        <DataItem Format=\"Binary\" DataType=\"Int\" Precision=\"4\" Endian=\"Little\" Dimensions=\"140004 4\">ele_aa.raw</DataItem>\n");
+    fprintf(file1,"        <DataItem Format=\"Binary\" DataType=\"Int\" Precision=\"4\" Endian=\"Little\" Dimensions=\"140004 4\">ele_vtx.raw</DataItem>\n");
     fprintf(file1,"      </Topology>\n");
-    fprintf(file1,"      <Attribute Name=\"ele_gg\" AttributeType=\"Scalar\" Center=\"Cell\">\n");
-    fprintf(file1,"        <DataItem Format=\"Binary\" DataType=\"Int\" Precision=\"4\" Endian=\"Little\" Dimensions=\"140004\">ele_gg.raw</DataItem>\n");
+    fprintf(file1,"      <Attribute ItemType=\"Uniform\" Name=\"ele_gg\" AttributeType=\"Scalar\" Center=\"Cell\">\n");
+    fprintf(file1,"        <DataItem Format=\"Binary\" DataType=\"Int\" Precision=\"4\" Endian=\"Little\" Dimensions=\"140004\">ele_tag.raw</DataItem>\n");
     fprintf(file1,"      </Attribute>\n");
     fprintf(file1,"    </Grid>\n");
     fprintf(file1,"    <Grid Name=\"fac\">\n");
-    fprintf(file1,"      <xi:include xpointer=\"xpointer(/Xdmf/Domain/Grid/Geometry)\"/>\n");
-//    fprintf(file1,"      <Geometry Type=\"XYZ\">\n");
-////    fprintf(file1,"        <DataItem Reference=\"XML\">/Xdmf/Domain/Geometry</DataItem>\n");
-//    fprintf(file1,"        <DataItem Format=\"Binary\" DataType=\"Float\" Precision=\"4\" Endian=\"Little\" Dimensions=\"24335 3\">vtx_xx.raw</DataItem>\n");
-//    fprintf(file1,"      </Geometry>\n");
+//    fprintf(file1,"      <xi:include xpointer=\"xpointer(/Xdmf/Domain/Grid/Geometry)\"/>\n"); //works
+    fprintf(file1,"      <Geometry Type=\"XYZ\">\n");
+    fprintf(file1,"        <DataItem Format=\"Binary\" DataType=\"Float\" Precision=\"4\" Endian=\"Little\" Dimensions=\"24335 3\">vtx_xyz.raw</DataItem>\n");
+    fprintf(file1,"      </Geometry>\n");
     fprintf(file1,"      <Topology TopologyType=\"Triangle\" NumberOfElements=\"282582\">\n");
-    fprintf(file1,"        <DataItem Format=\"Binary\" DataType=\"Int\" Precision=\"4\" Endian=\"Little\" Dimensions=\"282582 3\">fac_aa.raw</DataItem>\n");
+    fprintf(file1,"        <DataItem Format=\"Binary\" DataType=\"Int\" Precision=\"4\" Endian=\"Little\" Dimensions=\"282582 3\">fac_vtx.raw</DataItem>\n");
     fprintf(file1,"      </Topology>\n");
-    fprintf(file1,"      <Attribute Name=\"fac_gg\" AttributeType=\"Scalar\" Center=\"Cell\">\n");
-    fprintf(file1,"        <DataItem Format=\"Binary\" DataType=\"Int\" Precision=\"4\" Endian=\"Little\" Dimensions=\"282582\">fac_gg.raw</DataItem>\n");
+    fprintf(file1,"      <Attribute  ItemType=\"Uniform\" Name=\"fac_gg\" AttributeType=\"Scalar\" Center=\"Cell\">\n");
+    fprintf(file1,"        <DataItem Format=\"Binary\" DataType=\"Int\" Precision=\"4\" Endian=\"Little\" Dimensions=\"282582\">fac_tag.raw</DataItem>\n");
     fprintf(file1,"      </Attribute>\n");
     fprintf(file1,"    </Grid>\n");
     fprintf(file1,"  </Domain>\n");
