@@ -8,7 +8,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "vec.h"
 #include "read.h"
 #include "write.h"
 
@@ -22,63 +21,73 @@ int main(int argc, const char * argv[])
     
     
     //memory
-    struct flt3 *vtx_xyz;
-    struct int4 *ele_vtx;
-    struct int3 *fac_vtx;
+    float   *vtx_xyz;
+    int     *ele_vtx;
+    int     *fac_vtx;
+    int     *ele_fac;
+    
+    //dims
+    long ne, nv, nf;
     
     //read
-    long nv = read_flt3("vtx_xyz.raw", &vtx_xyz);
-    long ne = read_int4("ele_vtx.raw", &ele_vtx);
-    long nf = read_int3("fac_vtx.raw", &fac_vtx);
+    nv = read_flt("vtx_xyz.raw", &vtx_xyz, 3);
+    ne = read_int("ele_vtx.raw", &ele_vtx, 4);
+    nf = read_int("fac_vtx.raw", &fac_vtx, 3);
+    ne = read_int("ele_fac.raw", &ele_fac, 4);
     
-    int n = 10;
-    const int w = 4;
-    
-    union flt4 *aa = malloc(n*sizeof(union flt4));
-
-    for (int i = 0; i<n; i++)
+    printf("vtx_xyz %ld\n",nv);
+    for (int i=0; i<10; i++)
     {
-        for (int j = 0; j<w; j++)
-        {
-            aa[i].v[j] = (i*w)+j;
-        }
+        float*  xyz = &vtx_xyz[i*3];
+        printf("%e %e %e\n", xyz[0], xyz[1], xyz[2]);
     }
     
-    for (int i = 0; i<n; i++)
+    printf("ele_vtx %ld\n",ne);
+    for (int i=0; i<10; i++)
     {
-        printf("%e %e %e %e\n", aa[i].x, aa[i].y, aa[i].z, aa[i].w);
+        int*  vtx = &ele_vtx[i*4];
+        printf("%5d %5d %5d %5d\n", vtx[0], vtx[1], vtx[2], vtx[3]);
     }
     
-    free(aa);
+    printf("fac_vtx %ld\n",nf);
+    for (int i=0; i<10; i++)
+    {
+        int*  vtx = &fac_vtx[i*3];
+        printf("%5d %5d %5d\n", vtx[0], vtx[1], vtx[2]);
+    }
     
-    //    for (int i = 0; i < 10; i++)
-    //    {
-    //        printf("%e %e %e\n", vtx_xyz[i].x, vtx_xyz[i].y, vtx_xyz[i].z);
-    //    }
+    printf("ele_fac %ld\n",ne);
+    for (int i=0; i<10; i++)
+    {
+        int*  fac = &ele_fac[i*4];
+        printf("%5d %5d %5d %5d\n", fac[0], fac[1], fac[2], fac[3]);
+    }
     
+    
+    write_int("test1.raw", ele_fac, 10, 4);
+    write_flt("test2.raw", vtx_xyz, 10, 4);
 
-    
-    //disp
-//    printf("%ld %ld %ld\n",ne,nv,nf);
+
+//    int n = 4;
 //    
-//    //vtx
-//    for (int i = 0; i < 10; i++)
+////    int *aa = malloc(10*4*sizeof(int));
+//    int (*aa)[n] = malloc(sizeof(int[n][4]));
+//    
+//    
+//    for (int i=0; i<n; i++)
 //    {
-//        printf("%e %e %e\n", vtx_xyz[i].x, vtx_xyz[i].y, vtx_xyz[i].z);
+//        for (int j=0; j<4; j++)
+//        {
+//            aa[i][j] = i*4+j;
+//        }
 //    }
-//
-//    //ele
-//    for (int i = 0; i < 10; i++)
+//    
+//    for (int i=0; i<n; i++)
 //    {
-//        printf("%6d %6d %6d %6d\n", ele_vtx[i].x, ele_vtx[i].y, ele_vtx[i].z, ele_vtx[i].w);
+//        printf("%2d %2d %2d %2d\n", aa[i][0], aa[i][1], aa[i][2], aa[i][3]);
 //    }
-//
-//    //fac
-//    for (int i = 0; i < 10; i++)
-//    {
-//        printf("%6d %6d %6d\n", fac_vtx[i].x, fac_vtx[i].y, fac_vtx[i].z);
-//    }
-    
+//    
+//    free(aa);
 
     /*
      ===============
@@ -86,18 +95,17 @@ int main(int argc, const char * argv[])
      ===============
      */
 
+
+    
+//    union int4 *ele_fac = malloc(ne*sizeof(union int4));
 //    
-//    //ele_adj
-//    
-//    struct int4 *ele_fac = malloc(ne*sizeof(struct int4));
-//    
-//    //ele-fac
-//    for (int e1=0; e1<10; e1++)
+//    //ele_fac
+//    for (int e1=0; e1<ne; e1++)
 //    {
+//        int i = 0;
+//        
 //        for (int f1=0; f1<nf; f1++)
 //        {
-//            int i = 0;
-//            
 //            int c = 0;
 //            
 //            c += (fac_vtx[f1].x == ele_vtx[e1].x);
@@ -117,12 +125,21 @@ int main(int argc, const char * argv[])
 //            
 //            if(c==3)
 //            {
-//                printf("%6d %6d %d\n", e1, f1, c);
+//
+//                ele_fac[e1].v[i] = f1;
 //                
-//                
+//                i += 1;
 //            }
+//            if(i==4)
+//            {
+//                break;
+//            }
+//            
 //        }
+//        printf("%6d %6d %6d %6d %6d\n", e1, ele_fac[e1].v[0], ele_fac[e1].v[1], ele_fac[e1].v[2], ele_fac[e1].v[3]);
 //    }
+//    
+//    write_int4("ele_fac.raw", ele_fac, ne);
     
     
 //    //fac-ele
@@ -195,9 +212,9 @@ int main(int argc, const char * argv[])
     
     
     //clean
-    free(vtx_xyz);
-    free(ele_vtx);
-    free(fac_vtx);
+//    free(vtx_xyz);
+//    free(ele_vtx);
+//    free(fac_vtx);
 //    free(ele_fac);
     
     printf("done\n");

@@ -57,5 +57,41 @@ void write_xmf(int idx)
     fclose(file1);
 }
 
+
+long write_int(char* file_name, int *buf, long n, int w)
+{
+    FILE* file_ptr;
+    char file_path[250];
+    
+    //open
+    sprintf(file_path, "%s/%s", ROOT_WRITE, file_name);
+    file_ptr = fopen(file_path,"wb");
+    
+    //read
+    fwrite(buf, w*sizeof(int), n, file_ptr);
+    fclose(file_ptr);
+    
+    return n;
+}
+
+long write_flt(char* file_name, float *buf, long n, int w)
+{
+    FILE* file_ptr;
+    char file_path[250];
+    
+    //open
+    sprintf(file_path, "%s/%s", ROOT_WRITE, file_name);
+    file_ptr = fopen(file_path,"wb");
+    
+    //read
+    fwrite(buf, w*sizeof(float), n, file_ptr);
+    fclose(file_ptr);
+    
+    return n;
+}
+
+
+
+
 #endif /* write_h */
 
