@@ -30,14 +30,29 @@ struct flt3
     float z;
 };
 
-struct flt4
-{
-    float x;
-    float y;
-    float z;
-    float w;
-};
+//struct flt4
+//{
+//    float x;
+//    float y;
+//    float z;
+//    float w;
+//};
 
+
+
+
+union flt4
+{
+    struct
+    {
+        float x;
+        float y;
+        float z;
+        float w;
+    };
+    
+    float v[4];
+};
 
 
 #endif /* struct_h */
