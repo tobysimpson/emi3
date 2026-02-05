@@ -8,7 +8,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-
 #include "ocl.h"
 #include "io.h"
 
@@ -39,17 +38,22 @@ int main(int argc, const char * argv[])
     printf("ne %8ld\n", ne);
     printf("nf %8ld\n", nf);
     
+    //xdmf
+    write_xmf(nv, ne, nf, 0);
+    
     //memory
     cl_mem vtx_xyz = clCreateBuffer(ocl.context, CL_MEM_READ_WRITE, nv*sizeof(cl_float4), NULL, &ocl.err);
     cl_mem ele_vtx = clCreateBuffer(ocl.context, CL_MEM_READ_WRITE, ne*sizeof(cl_int4), NULL, &ocl.err);
     cl_mem fac_vtx = clCreateBuffer(ocl.context, CL_MEM_READ_WRITE, nf*sizeof(cl_int4), NULL, &ocl.err);
+    
+    cl_mem vtx_dat = clCreateBuffer(ocl.context, CL_MEM_READ_WRITE, ne*sizeof(cl_int4), NULL, &ocl.err);
+    cl_mem ele_dat = clCreateBuffer(ocl.context, CL_MEM_READ_WRITE, ne*sizeof(cl_int4), NULL, &ocl.err);
     
     //read
     read_flt4(&ocl, "vtx_xyz.raw", &vtx_xyz, nv, 3);
     read_int4(&ocl, "ele_vtx.raw", &ele_vtx, ne, 4);
     read_int4(&ocl, "fac_vtx.raw", &fac_vtx, nf, 3);
     
-
     //kernels
     cl_kernel vtx_ini = clCreateKernel(ocl.program, "vtx_ini", &ocl.err);
     cl_kernel ele_ini = clCreateKernel(ocl.program, "ele_ini", &ocl.err);
@@ -57,17 +61,26 @@ int main(int argc, const char * argv[])
 
     //args
     ocl.err = clSetKernelArg(vtx_ini,  0, sizeof(cl_mem),(void*)&vtx_xyz);
+    ocl.err = clSetKernelArg(vtx_ini,  1, sizeof(cl_mem),(void*)&vtx_dat);
+    
     ocl.err = clSetKernelArg(ele_ini,  0, sizeof(cl_mem),(void*)&ele_vtx);
+    ocl.err = clSetKernelArg(ele_ini,  1, sizeof(cl_mem),(void*)&ele_dat);
+    
     ocl.err = clSetKernelArg(fac_ini,  0, sizeof(cl_mem),(void*)&fac_vtx);
 
-    nv = 4;
-    ne = 4;
-    nf = 4;
+//    nv = 4;
+//    ne = 4;
+//    nf = 4;
     
     //run
     ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, vtx_ini, 1, NULL, &nv, NULL, 0, NULL, &ocl.event);
     ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, ele_ini, 1, NULL, &ne, NULL, 0, NULL, &ocl.event);
-    ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, fac_ini, 1, NULL, &nf, NULL, 0, NULL, &ocl.event);
+//    ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, fac_ini, 1, NULL, &nf, NULL, 0, NULL, &ocl.event);
+    
+    
+    //write
+    write_int4(&ocl, "vtx_dat.raw", &vtx_dat, nv, 1);
+    write_int4(&ocl, "ele_dat.raw", &ele_dat, nv, 1);
 
 //    
 //    //map
