@@ -9,12 +9,12 @@
 /* Begin PBXCopyFilesBuildPhase section */
 		DA91BA972F2B8FFA0089FCA5 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
+			buildActionMask = 12;
+			dstPath = "";
+			dstSubfolderSpec = 16;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 1;
+			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
@@ -22,9 +22,22 @@
 		DA91BA992F2B8FFA0089FCA5 /* emi3 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = emi3; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+		DAB0B4E62F34925600511CBD /* Exceptions for "emi3" folder in "Copy Files" phase from "emi3" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			buildPhase = DA91BA972F2B8FFA0089FCA5 /* CopyFiles */;
+			membershipExceptions = (
+				host/prg.cl,
+			);
+		};
+/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		DA91BA9B2F2B8FFA0089FCA5 /* emi3 */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				DAB0B4E62F34925600511CBD /* Exceptions for "emi3" folder in "Copy Files" phase from "emi3" target */,
+			);
 			path = emi3;
 			sourceTree = "<group>";
 		};
