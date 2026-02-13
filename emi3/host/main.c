@@ -30,7 +30,7 @@ int main(int argc, const char * argv[])
     ocl_ini(&ocl);
     
     //dim
-    int le = 1;
+    int le = 4;
     
     //voxels
     struct vxl_obj vxl;

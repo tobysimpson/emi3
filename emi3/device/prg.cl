@@ -56,9 +56,9 @@ int utl_idx(int3 pos, int3 dim)
  */
 
 //determinant 3x3
-int det3(int3 pos, int3 dim)
+float det3(float3 a, float3 b, float3 c)
 {
-    return pos.x + dim.x*pos.y + dim.x*dim.y*pos.z;
+    return dot(a,cross(b,c));
 }
 
 
@@ -115,29 +115,46 @@ kernel void vxl_tet(const  struct  vxl_obj  vxl,
 {
     int3  pos = (int3){get_global_id(0),get_global_id(1),get_global_id(2)};
     
-    int idx = utl_idx(pos, vxl.ne);
+    int vxl_idx = utl_idx(pos, vxl.ne);
     
-    printf("%d [%d %d %d %lu]\n", idx, pos.x, pos.y, pos.z, tet.nv);
+//    printf("vxl %d [%d %d %d]\n", vxl_idx, pos.x, pos.y, pos.z);
     
     //centre
-    float3 c = vxl.dx*(convert_float3(pos)+0.5f);
+    float3 x = vxl.dx*(convert_float3(pos)+0.5f);
+    vxl_dat[vxl_idx].xyz = x;
     
-    //ele
-    for (ulong i=0; i<tet.ne; i++)
+    //loop eles
+    for (ulong ele_idx=0; ele_idx<tet.ne; ele_idx++)
     {
-        //verts
-        float3 vtx[4];
+        float3 a = vtx_xyz[ele_vtx[ele_idx].x].xyz;
+        float3 b = vtx_xyz[ele_vtx[ele_idx].y].xyz;
+        float3 c = vtx_xyz[ele_vtx[ele_idx].z].xyz;
+        float3 d = vtx_xyz[ele_vtx[ele_idx].w].xyz;
         
-        vtx[0] = vtx_xyz[ele_vtx[i].x].xyz;
-        vtx[1] = vtx_xyz[ele_vtx[i].y].xyz;
-        vtx[2] = vtx_xyz[ele_vtx[i].z].xyz;
-        vtx[3] = vtx_xyz[ele_vtx[i].w].xyz;
+        //expand bottom row
+        float detA = - det3(b,c,d) + det3(a,c,d) - det3(a,b,d) + det3(a,b,c);
+//        printf("%d %lu %f\n", vxl_idx, ele_idx, detA);
+        
+        //bary coords
+        float4 lam;
+        
+        lam.x = (- det3(b,c,d) + det3(x,c,d) - det3(x,b,d) + det3(x,b,c))/detA;
+        lam.y = (- det3(x,c,d) + det3(a,c,d) - det3(a,x,d) + det3(a,x,c))/detA;
+        lam.z = (- det3(b,x,d) + det3(a,x,d) - det3(a,b,d) + det3(a,b,x))/detA;
+        lam.w = (- det3(b,c,x) + det3(a,c,x) - det3(a,b,x) + det3(a,b,c))/detA;
+        
+        
+//        printf("%d %d a [%f %f %f]\n", vxl_idx, ele_idx, a.x, a.y, a.z);
+//        printf("%d %d b [%f %f %f]\n", vxl_idx, ele_idx, b.x, b.y, b.z);
+//        printf("%d %d c [%f %f %f]\n", vxl_idx, ele_idx, c.x, c.y, c.z);
+//        printf("%d %d d [%f %f %f]\n", vxl_idx, ele_idx, d.x, d.y, d.z);
+        
+//        printf("%d %lu [%f %f %f %f]\n", vxl_idx, ele_idx, lam.x, lam.y, lam.z, lam.w);
+        
+        vxl_dat[vxl_idx].w += all(lam >= 0e0f);
     }
     
-    //centre
-    vxl_dat[idx].xyz = c;
-    
-    printf("%d [%f %f %f %f]\n", idx, vxl_dat[idx].x, vxl_dat[idx].y, vxl_dat[idx].z, vxl_dat[idx].w);
+//    printf("%d [%f %f %f %f]\n", vxl_idx, vxl_dat[vxl_idx].x, vxl_dat[vxl_idx].y, vxl_dat[vxl_idx].z, vxl_dat[vxl_idx].w);
 
     return;
 }
