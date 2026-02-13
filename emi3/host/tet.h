@@ -9,4 +9,12 @@
 #define tet_h
 
 
+//object
+struct tet_obj
+{
+    size_t nv;
+    size_t ne;
+};
+
+
 #endif /* tet_h */
