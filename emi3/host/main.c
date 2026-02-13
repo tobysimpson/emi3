@@ -30,7 +30,7 @@ int main(int argc, const char * argv[])
     ocl_ini(&ocl);
     
     //dim
-    int le = 4;
+    int le = 3;
     
     //voxels
     struct vxl_obj vxl;
@@ -49,24 +49,27 @@ int main(int argc, const char * argv[])
 
     //memory
     cl_mem vtx_xyz = clCreateBuffer(ocl.context, CL_MEM_READ_WRITE, tet.nv*sizeof(cl_float4),       NULL, &ocl.err);
-    cl_mem ele_vtx = clCreateBuffer(ocl.context, CL_MEM_READ_WRITE, tet.ne*sizeof(cl_int4),         NULL, &ocl.err);
+    cl_mem tet_vtx = clCreateBuffer(ocl.context, CL_MEM_READ_WRITE, tet.ne*sizeof(cl_int4),         NULL, &ocl.err);
+    cl_mem tet_dat = clCreateBuffer(ocl.context, CL_MEM_READ_WRITE, tet.ne*sizeof(cl_float4),       NULL, &ocl.err);
     cl_mem vxl_dat = clCreateBuffer(ocl.context, CL_MEM_READ_WRITE, vxl.ne_tot*sizeof(cl_float4),   NULL, &ocl.err);
     
     //read
     read_flt4(&ocl, "vtx_xyz.dat", &vtx_xyz, tet.nv, 3);
-    read_int4(&ocl, "tet_vtx.dat", &ele_vtx, tet.ne, 4);
+    read_int4(&ocl, "tet_vtx.dat", &tet_vtx, tet.ne, 4);
+    read_flt4(&ocl, "tet_dat.dat", &tet_dat, tet.ne, 1);
     
     //kernels
     cl_kernel vtx_ini = clCreateKernel(ocl.program, "vtx_ini", &ocl.err);
-    cl_kernel ele_ini = clCreateKernel(ocl.program, "ele_ini", &ocl.err);
+    cl_kernel tet_ini = clCreateKernel(ocl.program, "tet_ini", &ocl.err);
     cl_kernel vxl_ini = clCreateKernel(ocl.program, "vxl_ini", &ocl.err);
     cl_kernel vxl_tet = clCreateKernel(ocl.program, "vxl_tet", &ocl.err);
 
     //args
     ocl.err = clSetKernelArg(vtx_ini,  0, sizeof(cl_mem),(void*)&vtx_xyz);
     
-    ocl.err = clSetKernelArg(ele_ini,  0, sizeof(cl_mem),(void*)&vtx_xyz);
-    ocl.err = clSetKernelArg(ele_ini,  1, sizeof(cl_mem),(void*)&ele_vtx);
+    ocl.err = clSetKernelArg(tet_ini,  0, sizeof(cl_mem),(void*)&vtx_xyz);
+    ocl.err = clSetKernelArg(tet_ini,  1, sizeof(cl_mem),(void*)&tet_vtx);
+    ocl.err = clSetKernelArg(tet_ini,  2, sizeof(cl_mem),(void*)&tet_dat);
     
     ocl.err = clSetKernelArg(vxl_ini,  0, sizeof(struct vxl_obj),(void*)&vxl);
     ocl.err = clSetKernelArg(vxl_ini,  1, sizeof(cl_mem),(void*)&vxl_dat);
@@ -74,12 +77,13 @@ int main(int argc, const char * argv[])
     ocl.err = clSetKernelArg(vxl_tet,  0, sizeof(struct vxl_obj),(void*)&vxl);
     ocl.err = clSetKernelArg(vxl_tet,  1, sizeof(struct tet_obj),(void*)&tet);
     ocl.err = clSetKernelArg(vxl_tet,  2, sizeof(cl_mem),(void*)&vtx_xyz);
-    ocl.err = clSetKernelArg(vxl_tet,  3, sizeof(cl_mem),(void*)&ele_vtx);
-    ocl.err = clSetKernelArg(vxl_tet,  4, sizeof(cl_mem),(void*)&vxl_dat);
+    ocl.err = clSetKernelArg(vxl_tet,  3, sizeof(cl_mem),(void*)&tet_vtx);
+    ocl.err = clSetKernelArg(vxl_tet,  4, sizeof(cl_mem),(void*)&tet_dat);
+    ocl.err = clSetKernelArg(vxl_tet,  5, sizeof(cl_mem),(void*)&vxl_dat);
 
     //run
-//    ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, vtx_ini, 1, NULL, &tet.nv, NULL, 0, NULL, &ocl.event);
-//    ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, ele_ini, 1, NULL, &tet.ne, NULL, 0, NULL, &ocl.event);
+    ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, vtx_ini, 1, NULL, &tet.nv, NULL, 0, NULL, &ocl.event);
+    ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, tet_ini, 1, NULL, &tet.ne, NULL, 0, NULL, &ocl.event);
 //    ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, vxl_ini, 3, NULL, (size_t*)&vxl.ne_sz, NULL, 0, NULL, &ocl.event);
     ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, vxl_tet, 3, NULL, (size_t*)&vxl.ne_sz, NULL, 0, NULL, &ocl.event);
 
@@ -105,12 +109,13 @@ int main(int argc, const char * argv[])
     
     //memory
     ocl.err = clReleaseMemObject(vtx_xyz);
-    ocl.err = clReleaseMemObject(ele_vtx);
+    ocl.err = clReleaseMemObject(tet_vtx);
+    ocl.err = clReleaseMemObject(tet_dat);
     ocl.err = clReleaseMemObject(vxl_dat);
 
     //kernels
     ocl.err = clReleaseKernel(vtx_ini);
-    ocl.err = clReleaseKernel(ele_ini);
+    ocl.err = clReleaseKernel(tet_ini);
     ocl.err = clReleaseKernel(vxl_ini);
     ocl.err = clReleaseKernel(vxl_tet);
     

@@ -40,16 +40,16 @@ void write_xmf(struct tet_obj *tet, struct vxl_obj *vxl, int idx)
     fprintf(file1,"      <Topology TopologyType=\"Tetrahedron\" NumberOfElements=\"%ld\">\n", tet->ne);
     fprintf(file1,"        <DataItem Format=\"Binary\" DataType=\"Int\" Precision=\"4\" Endian=\"Little\" Dimensions=\"%ld 4\">tet_vtx.dat</DataItem>\n", tet->ne);
     fprintf(file1,"      </Topology>\n");
-//    fprintf(file1,"      <Attribute ItemType=\"Uniform\" Name=\"ele_tag\" AttributeType=\"Scalar\" Center=\"Cell\">\n");
-//    fprintf(file1,"        <DataItem Format=\"Binary\" DataType=\"Int\" Precision=\"4\" Endian=\"Little\" Dimensions=\"%ld\">ele_tag.raw</DataItem>\n", tet->ne);
+//    fprintf(file1,"      <Attribute ItemType=\"Uniform\" Name=\"tet_tag\" AttributeType=\"Scalar\" Center=\"Cell\">\n");
+//    fprintf(file1,"        <DataItem Format=\"Binary\" DataType=\"Int\" Precision=\"4\" Endian=\"Little\" Dimensions=\"%ld\">tet_tag.raw</DataItem>\n", tet->ne);
 //    fprintf(file1,"      </Attribute>\n");
     fprintf(file1,"    </Grid>\n");
 
     fprintf(file1,"    <Grid Name=\"vxl\" GridType=\"Uniform\">\n");
     fprintf(file1,"      <Topology name=\"topo\" TopologyType=\"3DCoRectMesh\" Dimensions=\"%d %d %d\"></Topology>\n", vxl->nv.z, vxl->nv.y, vxl->nv.x);
     fprintf(file1,"      <Geometry name=\"geo\" Type=\"ORIGIN_DXDYDZ\">\n");
-    fprintf(file1,"        <DataItem Format=\"XML\" Dimensions=\"3\">%f %f %f</DataItem>\n", 0e0f, 0e0f, 0e0f);
-    fprintf(file1,"        <DataItem Format=\"XML\" Dimensions=\"3\">%f %f %f</DataItem>\n", vxl->dx, vxl->dx, vxl->dx);
+    fprintf(file1,"        <DataItem Format=\"XML\" Dimensions=\"3\">%e %e %e</DataItem>\n", 0e0f, 0e0f, 0e0f);
+    fprintf(file1,"        <DataItem Format=\"XML\" Dimensions=\"3\">%e %e %e</DataItem>\n", vxl->dx, vxl->dx, vxl->dx);
     fprintf(file1,"      </Geometry>\n");
     
     fprintf(file1,"       <Attribute Name=\"vxl_dat\" Center=\"Cell\" AttributeType=\"Matrix\">\n");
