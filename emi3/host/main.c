@@ -29,20 +29,18 @@ int main(int argc, const char * argv[])
     struct ocl_obj ocl;
     ocl_ini(&ocl);
     
-    //dim
-    int le = 3;
-    
     //voxels
     struct vxl_obj vxl;
-    vxl.dt = 1e0f;
-    vxl.dx = powf(2e0f, -le);
-    vxl.le = (cl_int3){le,le,le};
+    vxl.dx = 1.0f;
+    vxl.x0 = (cl_float3){0e0f,0e0f,0e0f};
+    vxl.x0 = (cl_float3){1e0f,1e0f,1e0f};
+    vxl.x1 = (cl_float3){664.59,139.78,139.92};
     vxl_ini(&vxl);
     
     //tets
     struct tet_obj tet;
-    tet.nv = file_size("vtx_xyz.dat")/(3*sizeof(float));
-    tet.ne = file_size("tet_vtx.dat")/(4*sizeof(int));
+    tet.nv = file_size("vtx_xyz.dat")/(3*sizeof(cl_float));
+    tet.ne = file_size("tet_vtx.dat")/(4*sizeof(cl_int));
 
     printf("tet.nv %zu\n", tet.nv);
     printf("tet.ne %zu\n", tet.ne);
@@ -50,13 +48,13 @@ int main(int argc, const char * argv[])
     //memory
     cl_mem vtx_xyz = clCreateBuffer(ocl.context, CL_MEM_READ_WRITE, tet.nv*sizeof(cl_float4),       NULL, &ocl.err);
     cl_mem tet_vtx = clCreateBuffer(ocl.context, CL_MEM_READ_WRITE, tet.ne*sizeof(cl_int4),         NULL, &ocl.err);
-    cl_mem tet_dat = clCreateBuffer(ocl.context, CL_MEM_READ_WRITE, tet.ne*sizeof(cl_float4),       NULL, &ocl.err);
-    cl_mem vxl_dat = clCreateBuffer(ocl.context, CL_MEM_READ_WRITE, vxl.ne_tot*sizeof(cl_float4),   NULL, &ocl.err);
+    cl_mem tet_dat = clCreateBuffer(ocl.context, CL_MEM_READ_WRITE, tet.ne*sizeof(cl_float),        NULL, &ocl.err);
+    cl_mem vxl_dat = clCreateBuffer(ocl.context, CL_MEM_READ_WRITE, vxl.ne_tot*sizeof(cl_float),    NULL, &ocl.err);
     
     //read
     read_flt4(&ocl, "vtx_xyz.dat", &vtx_xyz, tet.nv, 3);
     read_int4(&ocl, "tet_vtx.dat", &tet_vtx, tet.ne, 4);
-    read_flt4(&ocl, "tet_dat.dat", &tet_dat, tet.ne, 1);
+    read_flt1(&ocl, "tet_dat.dat", &tet_dat, tet.ne);
     
     //kernels
     cl_kernel vtx_ini = clCreateKernel(ocl.program, "vtx_ini", &ocl.err);
@@ -82,8 +80,8 @@ int main(int argc, const char * argv[])
     ocl.err = clSetKernelArg(vxl_tet,  5, sizeof(cl_mem),(void*)&vxl_dat);
 
     //run
-    ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, vtx_ini, 1, NULL, &tet.nv, NULL, 0, NULL, &ocl.event);
-    ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, tet_ini, 1, NULL, &tet.ne, NULL, 0, NULL, &ocl.event);
+//    ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, vtx_ini, 1, NULL, &tet.nv, NULL, 0, NULL, &ocl.event);
+//    ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, tet_ini, 1, NULL, &tet.ne, NULL, 0, NULL, &ocl.event);
 //    ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, vxl_ini, 3, NULL, (size_t*)&vxl.ne_sz, NULL, 0, NULL, &ocl.event);
     ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, vxl_tet, 3, NULL, (size_t*)&vxl.ne_sz, NULL, 0, NULL, &ocl.event);
 
@@ -97,7 +95,7 @@ int main(int argc, const char * argv[])
     
     //write
     write_xmf(&tet, &vxl, 0);
-    write_flt4(&ocl, "vxl_dat.dat", &vxl_dat, vxl.ne_tot, 4);
+    write_flt(&ocl, "vxl_dat.dat", &vxl_dat, vxl.ne_tot);
 
 
     

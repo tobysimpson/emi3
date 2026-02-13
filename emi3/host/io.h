@@ -33,6 +33,7 @@ void write_xmf(struct tet_obj *tet, struct vxl_obj *vxl, int idx)
     fprintf(file1,"<?xml version=\"1.0\"?>\n");
     fprintf(file1,"<Xdmf xmlns:xi=\"http://www.w3.org/2001/XInclude\" Version=\"3.0\">\n");
     fprintf(file1,"  <Domain>\n");
+    fprintf(file1,"    <Grid CollectionType=\"None\" GridType=\"Collection\" Name=\"Collection\">");
     fprintf(file1,"    <Grid Name=\"tet\">\n");
     fprintf(file1,"      <Geometry Type=\"XYZ\">\n");
     fprintf(file1,"        <DataItem Format=\"Binary\" DataType=\"Float\" Precision=\"4\" Endian=\"Little\" Dimensions=\"%ld 3\">vtx_xyz.dat</DataItem>\n", tet->nv);
@@ -40,9 +41,9 @@ void write_xmf(struct tet_obj *tet, struct vxl_obj *vxl, int idx)
     fprintf(file1,"      <Topology TopologyType=\"Tetrahedron\" NumberOfElements=\"%ld\">\n", tet->ne);
     fprintf(file1,"        <DataItem Format=\"Binary\" DataType=\"Int\" Precision=\"4\" Endian=\"Little\" Dimensions=\"%ld 4\">tet_vtx.dat</DataItem>\n", tet->ne);
     fprintf(file1,"      </Topology>\n");
-//    fprintf(file1,"      <Attribute ItemType=\"Uniform\" Name=\"tet_tag\" AttributeType=\"Scalar\" Center=\"Cell\">\n");
-//    fprintf(file1,"        <DataItem Format=\"Binary\" DataType=\"Int\" Precision=\"4\" Endian=\"Little\" Dimensions=\"%ld\">tet_tag.raw</DataItem>\n", tet->ne);
-//    fprintf(file1,"      </Attribute>\n");
+    fprintf(file1,"      <Attribute ItemType=\"Uniform\" Name=\"tet_dat\" AttributeType=\"Scalar\" Center=\"Cell\">\n");
+    fprintf(file1,"        <DataItem Format=\"Binary\" DataType=\"Float\" Precision=\"4\" Endian=\"Little\" Dimensions=\"%ld\">tet_dat.dat</DataItem>\n", tet->ne);
+    fprintf(file1,"      </Attribute>\n");
     fprintf(file1,"    </Grid>\n");
 
     fprintf(file1,"    <Grid Name=\"vxl\" GridType=\"Uniform\">\n");
@@ -52,10 +53,8 @@ void write_xmf(struct tet_obj *tet, struct vxl_obj *vxl, int idx)
     fprintf(file1,"        <DataItem Format=\"XML\" Dimensions=\"3\">%e %e %e</DataItem>\n", vxl->dx, vxl->dx, vxl->dx);
     fprintf(file1,"      </Geometry>\n");
     
-    fprintf(file1,"       <Attribute Name=\"vxl_dat\" Center=\"Cell\" AttributeType=\"Matrix\">\n");
-    fprintf(file1,"         <DataItem Format=\"Binary\" Dimensions=\"%d %d %d 4\" Endian=\"Little\" Precision=\"4\" NumberType=\"Float\">\n", vxl->ne.z, vxl->ne.y, vxl->ne.x);
-    fprintf(file1,"             /Users/toby/Downloads/vxl_dat.dat\n");
-    fprintf(file1,"         </DataItem>\n");
+    fprintf(file1,"       <Attribute ItemType=\"Uniform\" Name=\"vxl_dat\" Center=\"Cell\" AttributeType=\"Scalar\">\n");
+    fprintf(file1,"         <DataItem Format=\"Binary\" Dimensions=\"%d %d %d\" Endian=\"Little\" Precision=\"4\" NumberType=\"Float\">vxl_dat.dat</DataItem>\n", vxl->ne.z, vxl->ne.y, vxl->ne.x);
     fprintf(file1,"       </Attribute>\n");
     
 //    fprintf(file1,"      <Attribute Name=\"gg\" Center=\"Cell\" AttributeType=\"Matrix\">\n");
@@ -69,6 +68,7 @@ void write_xmf(struct tet_obj *tet, struct vxl_obj *vxl, int idx)
 //    fprintf(file1,"         </DataItem>\n");
 //    fprintf(file1,"       </Attribute>\n");
 
+    fprintf(file1,"    </Grid>\n");
     fprintf(file1,"    </Grid>\n");
     fprintf(file1,"  </Domain>\n");
     fprintf(file1,"</Xdmf>\n");
@@ -105,6 +105,24 @@ size_t file_size(char* file_name)
  =============================
  */
 
+//file to cl_mem
+void read_flt1(struct ocl_obj *ocl, char *file_name, cl_mem *buf, size_t n)
+{
+    char        file_path[250];
+    sprintf(file_path, "%s/%s", ROOT_READ, file_name);
+    
+    FILE*       file_ptr = fopen(file_path,"rb");
+    cl_float*   host_ptr = clEnqueueMapBuffer(ocl->command_queue, *buf, CL_TRUE, CL_MAP_READ, 0, n*sizeof(cl_float), 0, NULL, NULL, &ocl->err);
+    
+    fread(host_ptr, sizeof(cl_float), n, file_ptr);
+    
+    clEnqueueUnmapMemObject(ocl->command_queue, *buf, host_ptr, 0, NULL, NULL);
+    
+    //clean up
+    fclose(file_ptr);
+    
+    return;
+}
 
 
 //file to cl_mem
@@ -136,7 +154,7 @@ void read_flt4(struct ocl_obj *ocl, char *file_name, cl_mem *buf, size_t n, int 
 void read_int4(struct ocl_obj *ocl, char *file_name, cl_mem *buf, size_t n, int w)
 {
     FILE*       file_ptr;
-    char        file_path[250];
+    char        file_path[100];
     cl_int4*    host_ptr;
     
     //buffer
@@ -163,6 +181,8 @@ void read_int4(struct ocl_obj *ocl, char *file_name, cl_mem *buf, size_t n, int 
  =============================
  */
 
+
+
 //cl_mem to file
 void write_int4(struct ocl_obj *ocl, char *file_name, cl_mem *buf, size_t n, int w)
 {
@@ -174,11 +194,10 @@ void write_int4(struct ocl_obj *ocl, char *file_name, cl_mem *buf, size_t n, int
     FILE*    file_ptr = fopen(file_path,"wb");
     cl_int4* host_ptr = clEnqueueMapBuffer(ocl->command_queue, *buf, CL_TRUE, CL_MAP_WRITE, 0, n*sizeof(cl_int4), 0, NULL, NULL, &ocl->err);
     
-    for (int i=0; i<n; i++)
-    {
-        fwrite(&host_ptr[i], sizeof(cl_int), w, file_ptr);
-    }
-    
+    //write
+    fwrite(host_ptr, sizeof(cl_int), n, file_ptr);
+
+    //unmap
     clEnqueueUnmapMemObject(ocl->command_queue, *buf, host_ptr, 0, NULL, NULL);
     
     //clean up
@@ -186,6 +205,30 @@ void write_int4(struct ocl_obj *ocl, char *file_name, cl_mem *buf, size_t n, int
     
     return;
 }
+
+
+
+//cl_mem to file
+void write_flt(struct ocl_obj *ocl, char *file_name, cl_mem *buf, size_t n)
+{
+    //name
+    char file_path[250];
+    sprintf(file_path, "%s/%s", ROOT_READ, file_name);
+    
+    FILE*    file_ptr = fopen(file_path,"wb");
+    cl_float* host_ptr = clEnqueueMapBuffer(ocl->command_queue, *buf, CL_TRUE, CL_MAP_WRITE, 0, n*sizeof(cl_float), 0, NULL, NULL, &ocl->err);
+    
+    fwrite(host_ptr, sizeof(cl_float), n, file_ptr);
+
+    clEnqueueUnmapMemObject(ocl->command_queue, *buf, host_ptr, 0, NULL, NULL);
+    
+    //clean up
+    fclose(file_ptr);
+    
+    return;
+}
+
+
 
 //cl_mem to file
 void write_flt4(struct ocl_obj *ocl, char *file_name, cl_mem *buf, size_t n, int w)

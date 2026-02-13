@@ -14,20 +14,18 @@
 //object
 struct vxl_obj
 {
-    int3    le;
-    int3    ne;
-    int3    nv;
-    
-    int     ne_tot;
-    int     nv_tot;
-    
-    float    dt;
     float    dx;
-    float    dx2;    //dx*dx
-    float    rdx2;   //1/(dx*dx)
+    float3   x0;
+    float3   x1;
     
-    ulong3   nv_sz;
-    ulong3   ne_sz;
+    int3     ne;
+    int3     nv;
+    
+    int      ne_tot;
+    int      nv_tot;
+    
+    ulong    nv_sz[3];
+    ulong    ne_sz[3];
 };
 
 //object
@@ -79,11 +77,11 @@ kernel void vtx_ini(global float4 *vtx_xyz)
 
 kernel void tet_ini(global float4   *vtx_xyz,
                     global int4     *tet_vtx,
-                    global float4   *tet_dat)
+                    global float    *tet_dat)
 {
     int  tet_idx = get_global_id(0);
 
-    printf("tet %d [%d %d %d %d] %f %f %f %f\n", tet_idx, tet_vtx[tet_idx].x, tet_vtx[tet_idx].y, tet_vtx[tet_idx].z, tet_vtx[tet_idx].w, tet_dat[tet_idx].x, tet_dat[tet_idx].y, tet_dat[tet_idx].z, tet_dat[tet_idx].w);
+    printf("tet %d [%d %d %d %d] %f\n", tet_idx, tet_vtx[tet_idx].x, tet_vtx[tet_idx].y, tet_vtx[tet_idx].z, tet_vtx[tet_idx].w, tet_dat[tet_idx]);
     
 //    //verts
 //    printf("vtx %d %f %f %f\n", tet_vtx[idx].x, vtx_xyz[tet_vtx[idx].x].x, vtx_xyz[tet_vtx[idx].x].y, vtx_xyz[tet_vtx[idx].x].z);
@@ -101,8 +99,6 @@ kernel void vxl_ini(const  struct  vxl_obj  vxl,
     
     int idx = utl_idx(pos, vxl.ne);
     
-//    vxl_dat[idx] = convert_float4((int4){pos.x,pos.y,pos.z,idx});
-    
     printf("vxl %d [%d %d %d] %e \n", idx, pos.x, pos.y, pos.z, vxl_dat[idx].w);
 
     return;
@@ -112,8 +108,8 @@ kernel void vxl_tet(const  struct  vxl_obj  vxl,
                     const  struct  tet_obj  tet,
                     global float4           *vtx_xyz,
                     global int4             *tet_vtx,
-                    global float4           *tet_dat,
-                    global float4           *vxl_dat)
+                    global float            *tet_dat,
+                    global float            *vxl_dat)
 {
     int3  pos = (int3){get_global_id(0),get_global_id(1),get_global_id(2)};
     
@@ -122,8 +118,8 @@ kernel void vxl_tet(const  struct  vxl_obj  vxl,
 //    printf("vxl %d [%d %d %d]\n", vxl_idx, pos.x, pos.y, pos.z);
     
     //centre
-    float3 x = vxl.dx*(convert_float3(pos)+0.5f);
-    vxl_dat[vxl_idx].xyz = x;
+    float3 x = vxl.x0 + vxl.dx*(convert_float3(pos)+0.5f);
+//    vxl_dat[vxl_idx].xyz = x;
     
     //loop eles
     for (ulong tet_idx=0; tet_idx<tet.ne; tet_idx++)
@@ -153,7 +149,7 @@ kernel void vxl_tet(const  struct  vxl_obj  vxl,
 //        printf("%d %lu [%f %f %f %f]\n", vxl_idx, tet_idx, lam.x, lam.y, lam.z, lam.w);
         
 //        vxl_dat[vxl_idx].w += all(lam >= 0e0f);
-        vxl_dat[vxl_idx].w = all(lam >= 0e0f)?tet_dat[tet_idx].x:vxl_dat[vxl_idx].w;
+        vxl_dat[vxl_idx] = all(lam >= 0e0f)?tet_dat[tet_idx]:vxl_dat[vxl_idx];
     }
     
 //    printf("%d [%f %f %f %f]\n", vxl_idx, vxl_dat[vxl_idx].x, vxl_dat[vxl_idx].y, vxl_dat[vxl_idx].z, vxl_dat[vxl_idx].w);

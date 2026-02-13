@@ -12,20 +12,18 @@
 //object
 struct vxl_obj
 {
-    cl_int3    le;
-    cl_int3    ne;
-    cl_int3    nv;
+    cl_float    dx;
+    cl_float3   x0;
+    cl_float3   x1;
     
-    cl_int     ne_tot;
-    cl_int     nv_tot;
+    cl_int3     ne;
+    cl_int3     nv;
     
-    cl_float   dt;
-    cl_float   dx;
-    cl_float   dx2;    //dx*dx
-    cl_float   rdx2;   //1/(dx*dx)
+    cl_int      ne_tot;
+    cl_int      nv_tot;
     
-    size_t     nv_sz[3];
-    size_t     ne_sz[3];
+    size_t      nv_sz[3];
+    size_t      ne_sz[3];
 };
 
 
@@ -33,14 +31,17 @@ struct vxl_obj
 //init
 void vxl_ini(struct vxl_obj *vxl)
 {
-    vxl->ne = (cl_int3){pow(2, vxl->le.x), pow(2, vxl->le.y), pow(2, vxl->le.z)};
-    vxl->nv = (cl_int3){vxl->ne.x+1, vxl->ne.y+1, vxl->ne.z+1};
+    vxl->ne.x = ceilf((vxl->x1.x - vxl->x0.x)/vxl->dx);
+    vxl->ne.y = ceilf((vxl->x1.y - vxl->x0.y)/vxl->dx);
+    vxl->ne.z = ceilf((vxl->x1.z - vxl->x0.z)/vxl->dx);
     
+    vxl->nv.x = vxl->ne.x+1;
+    vxl->nv.y = vxl->ne.y+1;
+    vxl->nv.z = vxl->ne.z+1;
+
     vxl->ne_tot = vxl->ne.x*vxl->ne.y*vxl->ne.z;
     vxl->nv_tot = vxl->nv.x*vxl->nv.y*vxl->nv.z;
-    
-    vxl->dx2    = vxl->dx*vxl->dx;
-    vxl->rdx2   = 1e0f/vxl->dx2;
+
     
     vxl->nv_sz[0]   = vxl->nv.x;
     vxl->nv_sz[1]   = vxl->nv.y;
@@ -50,9 +51,9 @@ void vxl_ini(struct vxl_obj *vxl)
     vxl->ne_sz[1]   = vxl->ne.y;
     vxl->ne_sz[2]   = vxl->ne.z;
     
-    printf("vxl.dt %f\n", vxl->dt);
     printf("vxl.dx %f\n", vxl->dx);
-    printf("vxl [%u,%u,%u] %3u\n", vxl->ne.x, vxl->ne.y, vxl->ne.z, vxl->ne_tot);
+    printf("vxl.ne [%u,%u,%u]\n", vxl->ne.x, vxl->ne.y, vxl->ne.z);
+    printf("vxl.ne_tot %3u\n", vxl->ne_tot);
 
     return;
 }
