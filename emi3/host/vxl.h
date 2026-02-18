@@ -13,17 +13,17 @@ struct vxl_obj
 {
     float dx;
     
-    struct flt4 x0;
-    struct flt4 x1;
+    cl_float3 x0;
+    cl_float3 x1;
     
-    struct int4 ne;
-    struct int4 nv;
+    cl_int3 ne;
+    cl_int3 nv;
     
-    int         ne_tot;
-    int         nv_tot;
+    int ne_tot;
+    int nv_tot;
     
-    size_t      ne_sz[3];
-    size_t      nv_sz[3];
+    size_t ne_sz[3];
+    size_t nv_sz[3];
 };
 
 

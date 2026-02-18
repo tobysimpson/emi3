@@ -33,8 +33,8 @@ int main(int argc, const char * argv[])
     
     struct vxl_obj vxl;
     vxl.dx = 10e0f;
-    vxl.x0 = (struct flt4){0e0f,0e0f,0e0f};
-    vxl.x1 = (struct flt4){664.59f,139.78f,139.92f};
+    vxl.x0 = (cl_float3){0e0f,0e0f,0e0f};
+    vxl.x1 = (cl_float3){664.59f,139.78f,139.92f};
     vxl_ini(&vxl);
     
 
