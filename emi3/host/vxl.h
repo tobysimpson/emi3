@@ -9,23 +9,22 @@
 #define vxl_h
 
 
-//object
 struct vxl_obj
 {
-    cl_float    dx;
-    cl_float3   x0;
-    cl_float3   x1;
+    float dx;
     
-    cl_int3     ne;
-    cl_int3     nv;
+    struct flt4 x0;
+    struct flt4 x1;
     
-    cl_int      ne_tot;
-    cl_int      nv_tot;
+    struct int4 ne;
+    struct int4 nv;
     
-    size_t      nv_sz[3];
+    int         ne_tot;
+    int         nv_tot;
+    
     size_t      ne_sz[3];
+    size_t      nv_sz[3];
 };
-
 
 
 //init
@@ -41,16 +40,15 @@ void vxl_ini(struct vxl_obj *vxl)
 
     vxl->ne_tot = vxl->ne.x*vxl->ne.y*vxl->ne.z;
     vxl->nv_tot = vxl->nv.x*vxl->nv.y*vxl->nv.z;
+    
+    vxl->ne_sz[0] = vxl->ne.x;
+    vxl->ne_sz[1] = vxl->ne.y;
+    vxl->ne_sz[2] = vxl->ne.z;
+    
+    vxl->nv_sz[0] = vxl->nv.x;
+    vxl->nv_sz[1] = vxl->nv.y;
+    vxl->nv_sz[2] = vxl->nv.z;
 
-    
-    vxl->nv_sz[0]   = vxl->nv.x;
-    vxl->nv_sz[1]   = vxl->nv.y;
-    vxl->nv_sz[2]   = vxl->nv.z;
-    
-    vxl->ne_sz[0]   = vxl->ne.x;
-    vxl->ne_sz[1]   = vxl->ne.y;
-    vxl->ne_sz[2]   = vxl->ne.z;
-    
     printf("vxl.dx %f\n", vxl->dx);
     printf("vxl.ne [%u,%u,%u]\n", vxl->ne.x, vxl->ne.y, vxl->ne.z);
     printf("vxl.ne_tot %3u\n", vxl->ne_tot);

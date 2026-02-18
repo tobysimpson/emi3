@@ -15,6 +15,7 @@
 struct vxl_obj
 {
     float    dx;
+    
     float3   x0;
     float3   x1;
     
@@ -24,8 +25,9 @@ struct vxl_obj
     int      ne_tot;
     int      nv_tot;
     
-    ulong    nv_sz[3];
     ulong    ne_sz[3];
+    ulong    nv_sz[3];
+    
 };
 
 //object
@@ -49,7 +51,7 @@ int utl_idx(int3 pos, int3 dim)
 
 /*
  =============================
- linear
+ linalg
  =============================
  */
 
