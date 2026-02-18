@@ -10,7 +10,6 @@
 #include <math.h>
 
 #include "ocl.h"
-#include "vec.h"
 #include "vxl.h"
 #include "io.h"
 #include "xdmf.h"
@@ -39,21 +38,29 @@ int main(int argc, const char * argv[])
     
 
     //memory
-    cl_mem vxl_tag = clCreateBuffer(ocl.context, CL_MEM_READ_WRITE, vxl.ne_tot*sizeof(cl_float),    NULL, &ocl.err);
+    cl_mem vxl_tag = clCreateBuffer(ocl.context, CL_MEM_READ_WRITE, vxl.ne_tot*sizeof(cl_float),  NULL, &ocl.err);
+    cl_mem vxl_dat = clCreateBuffer(ocl.context, CL_MEM_READ_WRITE, vxl.ne_tot*sizeof(cl_float2), NULL, &ocl.err);
     
     //read
-    read_f2b(&ocl, "vxl_tag.dat", &vxl_tag, vxl.ne_tot, sizeof(cl_float));
+    file_read(&ocl, "vxl_tag.dat", &vxl_tag, vxl.ne_tot, sizeof(cl_float));
 
     //kernels
     cl_kernel vxl_ini = clCreateKernel(ocl.program, "vxl_ini", &ocl.err);
+    cl_kernel vxl_ion = clCreateKernel(ocl.program, "vxl_ion", &ocl.err);
 
     //args
-    ocl.err = clSetKernelArg(vxl_ini,  0, sizeof(struct vxl_obj),(void*)&vxl);
-    ocl.err = clSetKernelArg(vxl_ini,  1, sizeof(cl_mem),(void*)&vxl_tag);
+    ocl.err = clSetKernelArg(vxl_ini,  0, sizeof(struct vxl_obj),   (void*)&vxl);
+    ocl.err = clSetKernelArg(vxl_ini,  1, sizeof(cl_mem),           (void*)&vxl_dat);
+    ocl.err = clSetKernelArg(vxl_ini,  2, sizeof(cl_mem),           (void*)&vxl_tag);
     
-   
+    ocl.err = clSetKernelArg(vxl_ion,  0, sizeof(struct vxl_obj),   (void*)&vxl);
+    ocl.err = clSetKernelArg(vxl_ion,  1, sizeof(cl_mem),           (void*)&vxl_dat);
+    ocl.err = clSetKernelArg(vxl_ion,  2, sizeof(cl_mem),           (void*)&vxl_tag);
+    
+    
     //run
     ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, vxl_ini, 3, NULL, (size_t*)&vxl.ne_sz, NULL, 0, NULL, &ocl.event);
+    ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, vxl_ion, 3, NULL, (size_t*)&vxl.ne_sz, NULL, 0, NULL, &ocl.event);
 
 
     /*
@@ -64,6 +71,7 @@ int main(int argc, const char * argv[])
     
     //write
     write_xmf(&vxl, 0);
+    file_write(&ocl, "vxl_dat.dat", &vxl_dat, vxl.ne_tot, sizeof(cl_float2));
 
     /*
      =============================
@@ -73,9 +81,11 @@ int main(int argc, const char * argv[])
     
     //memory
     ocl.err = clReleaseMemObject(vxl_tag);
+    ocl.err = clReleaseMemObject(vxl_dat);
 
     //kernels
     ocl.err = clReleaseKernel(vxl_ini);
+    ocl.err = clReleaseKernel(vxl_ion);
     
     //final
     ocl_fin(&ocl);

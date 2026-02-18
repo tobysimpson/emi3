@@ -22,6 +22,8 @@ struct vxl_obj
     int ne_tot;
     int nv_tot;
     
+    float rdx2;
+    
     size_t ne_sz[3];
     size_t nv_sz[3];
 };
@@ -48,6 +50,8 @@ void vxl_ini(struct vxl_obj *vxl)
     vxl->nv_sz[0] = vxl->nv.x;
     vxl->nv_sz[1] = vxl->nv.y;
     vxl->nv_sz[2] = vxl->nv.z;
+    
+    vxl->rdx2 = pow(vxl->dx, -2);
 
     printf("vxl.dx %f\n", vxl->dx);
     printf("vxl.ne [%u,%u,%u]\n", vxl->ne.x, vxl->ne.y, vxl->ne.z);

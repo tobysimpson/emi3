@@ -42,7 +42,7 @@ size_t file_size(char* file_name)
  */
 
 //file to cl_mem
-void read_f2b(struct ocl_obj *ocl, char *file_name, cl_mem *buf, size_t n, size_t w)
+void file_read(struct ocl_obj *ocl, char *file_name, cl_mem *buf, size_t n, size_t w)
 {
     char file_path[250];
     sprintf(file_path, "%s/%s", ROOT_READ, file_name);
@@ -61,12 +61,12 @@ void read_f2b(struct ocl_obj *ocl, char *file_name, cl_mem *buf, size_t n, size_
 }
 
 //file to cl_mem
-void write_b2f(struct ocl_obj *ocl, char *file_name, cl_mem *buf, size_t n, size_t w)
+void file_write(struct ocl_obj *ocl, char *file_name, cl_mem *buf, size_t n, size_t w)
 {
     char file_path[250];
     sprintf(file_path, "%s/%s", ROOT_READ, file_name);
     
-    FILE* file_ptr = fopen(file_path,"rb");
+    FILE* file_ptr = fopen(file_path,"wb");
     void* host_ptr = clEnqueueMapBuffer(ocl->command_queue, *buf, CL_TRUE, CL_MAP_READ, 0, n*w, 0, NULL, NULL, &ocl->err);
     
     fwrite(host_ptr, w, n, file_ptr);
