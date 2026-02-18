@@ -16,7 +16,7 @@ void write_xmf(struct vxl_obj *vxl, int idx)
     char file1_name[250];
     
     //file name
-    sprintf(file1_name, "%s/vxl.%02d.xmf", ROOT_WRITE, idx);
+    sprintf(file1_name, "%s/vxl.%03d.xmf", ROOT_WRITE, idx);
     
     //open
     file1 = fopen(file1_name,"w");
@@ -34,7 +34,7 @@ void write_xmf(struct vxl_obj *vxl, int idx)
     fprintf(file1,"        <DataItem Format=\"Binary\" Dimensions=\"%d %d %d\" Endian=\"Little\" Precision=\"4\" NumberType=\"Float\">vxl_tag.dat</DataItem>\n", vxl->ne.z, vxl->ne.y, vxl->ne.x);
     fprintf(file1,"      </Attribute>\n");
     fprintf(file1,"      <Attribute ItemType=\"Uniform\" Name=\"vxl_dat\" Center=\"Cell\" AttributeType=\"Matrix\">\n");
-    fprintf(file1,"        <DataItem Format=\"Binary\" Dimensions=\"%d %d %d 2\" Endian=\"Little\" Precision=\"4\" NumberType=\"Float\">vxl_dat.dat</DataItem>\n", vxl->ne.z, vxl->ne.y, vxl->ne.x);
+    fprintf(file1,"        <DataItem Format=\"Binary\" Dimensions=\"%d %d %d 2\" Endian=\"Little\" Precision=\"4\" NumberType=\"Float\">vxl_dat.%03d.dat</DataItem>\n", vxl->ne.z, vxl->ne.y, vxl->ne.x, idx);
     fprintf(file1,"      </Attribute>\n");
     
 //    fprintf(file1,"      <Attribute Name=\"gg\" Center=\"Cell\" AttributeType=\"Matrix\">\n");

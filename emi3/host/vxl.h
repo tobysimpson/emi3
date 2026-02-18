@@ -11,6 +11,7 @@
 
 struct vxl_obj
 {
+    float dt;
     float dx;
     
     cl_float3 x0;

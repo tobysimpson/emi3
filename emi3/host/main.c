@@ -31,7 +31,9 @@ int main(int argc, const char * argv[])
     ocl_ini(&ocl);
     
     struct vxl_obj vxl;
+    vxl.dt = 1.0f;
     vxl.dx = 10e0f;
+    vxl.ne = (cl_int3){67,14,14};
     vxl.x0 = (cl_float3){0e0f,0e0f,0e0f};
     vxl.x1 = (cl_float3){664.59f,139.78f,139.92f};
     vxl_ini(&vxl);
@@ -60,18 +62,21 @@ int main(int argc, const char * argv[])
     
     //run
     ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, vxl_ini, 3, NULL, (size_t*)&vxl.ne_sz, NULL, 0, NULL, &ocl.event);
-    ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, vxl_ion, 3, NULL, (size_t*)&vxl.ne_sz, NULL, 0, NULL, &ocl.event);
-
-
-    /*
-     =============================
-     write
-     =============================
-     */
     
-    //write
-    write_xmf(&vxl, 0);
-    file_write(&ocl, "vxl_dat.dat", &vxl_dat, vxl.ne_tot, sizeof(cl_float2));
+    //time
+    for(int t=0; t<100; t++)
+    {
+        //calc
+        ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, vxl_ion, 3, NULL, (size_t*)&vxl.ne_sz, NULL, 0, NULL, &ocl.event);
+        
+        //write
+        write_xmf(&vxl, t);
+        
+        char file_name[250];
+        sprintf(file_name, "vxl_dat.%03d.dat", t);
+        file_write(&ocl, file_name, &vxl_dat, vxl.ne_tot, sizeof(cl_float2));
+    }
+
 
     /*
      =============================

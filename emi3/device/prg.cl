@@ -12,7 +12,8 @@
  =============================
  */
 
-constant int3       off[6]  = {{-1,0,0},{+1,0,0},{0,-1,0},{0,+1,0},{0,0,-1},{0,0,+1}};
+constant int3   off[6]  = {{-1,0,0},{+1,0,0},{0,-1,0},{0,+1,0},{0,0,-1},{0,0,+1}};
+constant float2 c       = 5.0f;
 
 /*
  =============================
@@ -24,6 +25,7 @@ constant int3       off[6]  = {{-1,0,0},{+1,0,0},{0,-1,0},{0,+1,0},{0,0,-1},{0,0
 //object
 struct vxl_obj
 {
+    float dt;
     float dx;
     
     float3 x0;
@@ -74,9 +76,9 @@ kernel void vxl_ini(const  struct vxl_obj    vxl,
     int  idx = utl_idx(pos, vxl.ne);
     
     //init
-//    vxl_dat[idx].xy = convert_float2(pos.xy > vxl.ne.xy/2);
+    vxl_dat[idx].xy = convert_float2(pos.xy > vxl.ne.xy/2);
     
-    printf("vxl %5d [%2d %2d %2d] %f %f\n", idx, pos.x, pos.y, pos.z, vxl_dat[idx].x, vxl_dat[idx].y);
+//    printf("ini %5d [%2d %2d %2d] %f %f\n", idx, pos.x, pos.y, pos.z, vxl_dat[idx].x, vxl_dat[idx].y);
 
     return;
 }
@@ -89,23 +91,28 @@ kernel void vxl_ion(const  struct vxl_obj    vxl,
 {
     int3 pos = {get_global_id(0), get_global_id(1), get_global_id(2)};
     int  idx = utl_idx(pos, vxl.ne);
+     
+
+    //sum
+    float   d = 0.0f;
+    float2  s = 0.0f;
+
+    //stencil
+    for(int j=0; j<6; j++)
+    {
+        int3 posj = pos + off[j];
+        int  bndj = utl_bnd(posj, vxl.ne);
+        int  idxj = utl_idx(posj, vxl.ne);
+        
+        d += bndj;
+        
+        s += bndj*vxl_dat[idxj];
+    }
     
-    printf("vxl %5d [%2d %2d %2d] %f %f\n", idx, pos.x, pos.y, pos.z, vxl_dat[idx].x, vxl_dat[idx].y);
+    vxl_dat[idx] += vxl.dt*vxl.rdx2*c*(s - d*vxl_dat[idx]);
     
-//
-//    //sum
-//    float2 s = 0.0f;
-//
-//    //stencil
-//    for(int j=0; j<6; j++)
-//    {
-//        int3 posj = pos + off[j];
-//        int  idxj = utl_idx(posj, vxl.ne);
-//        s += vxl_dat[idxj];
-//    }
-//    
-//    //fwd
-//    //Au[idx] = vxl.rdx2*(6.0f*uu[idx] - s);
+    //fwd
+    //Au[idx] = vxl.rdx2*(6.0f*uu[idx] - s);
 
     return;
 }
