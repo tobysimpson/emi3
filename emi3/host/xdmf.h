@@ -34,13 +34,13 @@ void write_xmf(struct vxl_obj *vxl, int idx)
     fprintf(file1,"        <DataItem Format=\"Binary\" Dimensions=\"%d %d %d\" Endian=\"Little\" Precision=\"4\" NumberType=\"Float\">gg.000.dat</DataItem>\n", vxl->ne.z, vxl->ne.y, vxl->ne.x);
     fprintf(file1,"      </Attribute>\n");
     
-    fprintf(file1,"      <Attribute ItemType=\"Uniform\" Name=\"uu\" Center=\"Cell\" AttributeType=\"Scalar\">\n");
-    fprintf(file1,"        <DataItem Format=\"Binary\" Dimensions=\"%d %d %d\" Endian=\"Little\" Precision=\"4\" NumberType=\"Float\">uu.%03d.dat</DataItem>\n", vxl->ne.z, vxl->ne.y, vxl->ne.x, idx);
-    fprintf(file1,"      </Attribute>\n");
-    
-//    fprintf(file1,"      <Attribute ItemType=\"Uniform\" Name=\"uu\" Center=\"Cell\" AttributeType=\"Matrix\">\n");
-//    fprintf(file1,"        <DataItem Format=\"Binary\" Dimensions=\"%d %d %d 2\" Endian=\"Little\" Precision=\"4\" NumberType=\"Float\">uu.%03d.dat</DataItem>\n", vxl->ne.z, vxl->ne.y, vxl->ne.x, idx);
+//    fprintf(file1,"      <Attribute ItemType=\"Uniform\" Name=\"uu\" Center=\"Cell\" AttributeType=\"Scalar\">\n");
+//    fprintf(file1,"        <DataItem Format=\"Binary\" Dimensions=\"%d %d %d\" Endian=\"Little\" Precision=\"4\" NumberType=\"Float\">uu.%03d.dat</DataItem>\n", vxl->ne.z, vxl->ne.y, vxl->ne.x, idx);
 //    fprintf(file1,"      </Attribute>\n");
+    
+    fprintf(file1,"      <Attribute ItemType=\"Uniform\" Name=\"uu\" Center=\"Cell\" AttributeType=\"Matrix\">\n");
+    fprintf(file1,"        <DataItem Format=\"Binary\" Dimensions=\"%d %d %d 2\" Endian=\"Little\" Precision=\"4\" NumberType=\"Float\">uu.%03d.dat</DataItem>\n", vxl->ne.z, vxl->ne.y, vxl->ne.x, idx);
+    fprintf(file1,"      </Attribute>\n");
 
     fprintf(file1,"    </Grid>\n");
     fprintf(file1,"  </Domain>\n");

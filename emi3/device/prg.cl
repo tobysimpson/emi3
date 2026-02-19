@@ -13,7 +13,7 @@
  */
 
 constant int3   off[6]  = {{-1,0,0},{+1,0,0},{0,-1,0},{0,+1,0},{0,0,-1},{0,0,+1}};
-constant float c       = 1.0f;
+constant float2 c       = {1.0f,1.0f};
 
 /*
  =============================
@@ -67,13 +67,14 @@ int utl_bnd(int3 pos, int3 dim)
 
 kernel void vxl_ini(const  struct vxl_obj    vxl,
                     global float            *gg,
-                    global float           *uu)
+                    global float2           *uu)
 {
     int3 vxl_pos = (int3){get_global_id(0),get_global_id(1),get_global_id(2)};
     int  vxl_idx = utl_idx(vxl_pos, vxl.ne);
     
     //init
-    uu[vxl_idx] = convert_float(vxl_pos.x >= vxl.ne.x/2);
+    uu[vxl_idx].x = convert_float(vxl_pos.x >= vxl.ne.x/2);
+    uu[vxl_idx].y = convert_float(vxl_pos.y >= vxl.ne.y/2);
 
     
 //    uu[vxl_idx] = convert_float(vxl_pos.xy > vxl.ne.xy/2);
@@ -87,13 +88,13 @@ kernel void vxl_ini(const  struct vxl_obj    vxl,
 //jacobi euler
 kernel void vxl_jac(const  struct vxl_obj    vxl,
                     global float            *gg,
-                    global float           *uu,
-                    global float           *bb)
+                    global float2           *uu,
+                    global float2           *bb)
 {
     int3  vxl_pos  = (int3){get_global_id(0), get_global_id(1), get_global_id(2)};
     int   vxl_idx  = utl_idx(vxl_pos, vxl.ne);
     
-    float s = 0.0f;
+    float2 s = 0.0f;
     float  d = 0.0f;
     
     //stencil
@@ -111,7 +112,7 @@ kernel void vxl_jac(const  struct vxl_obj    vxl,
     }
     
     //constants
-    float alp = c*vxl.dt*vxl.rdx2;
+    float2 alp = c*vxl.dt*vxl.rdx2;
     
     //ie
     uu[vxl_idx] = (bb[vxl_idx] + alp*s)/(1e0f - alp*d);
@@ -129,14 +130,14 @@ kernel void vxl_jac(const  struct vxl_obj    vxl,
 //explicit euler
 kernel void vxl_ion(const  struct vxl_obj    vxl,
                     global float            *gg,
-                    global float           *uu)
+                    global float2           *uu)
 {
     int3 pos = {get_global_id(0), get_global_id(1), get_global_id(2)};
     int  idx = utl_idx(pos, vxl.ne);
      
     //sum
-    float   d = 0.0f;
-    float  s = 0.0f;
+    float2  d = 0.0f;
+    float2  s = 0.0f;
 
     //stencil
     for(int j=0; j<6; j++)
