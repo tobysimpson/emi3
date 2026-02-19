@@ -13,10 +13,7 @@ struct vxl_obj
 {
     float dt;
     float dx;
-    
-    cl_float3 x0;
-    cl_float3 x1;
-    
+
     cl_int3 ne;
     cl_int3 nv;
     
@@ -33,10 +30,6 @@ struct vxl_obj
 //init
 void vxl_ini(struct vxl_obj *vxl)
 {
-    vxl->ne.x = ceilf((vxl->x1.x - vxl->x0.x)/vxl->dx);
-    vxl->ne.y = ceilf((vxl->x1.y - vxl->x0.y)/vxl->dx);
-    vxl->ne.z = ceilf((vxl->x1.z - vxl->x0.z)/vxl->dx);
-    
     vxl->nv.x = vxl->ne.x+1;
     vxl->nv.y = vxl->ne.y+1;
     vxl->nv.z = vxl->ne.z+1;

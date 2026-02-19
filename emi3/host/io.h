@@ -8,10 +8,8 @@
 #ifndef io_h
 #define io_h
 
-
-#define ROOT_READ   "/Users/toby/Downloads"
-#define ROOT_WRITE  "/Users/toby/Downloads"
-
+#define ROOT_READ   "/Users/toby/Downloads/tet"
+#define ROOT_WRITE  "/Users/toby/Downloads/vxl"
 
 /*
  =============================
@@ -60,11 +58,11 @@ void file_read(struct ocl_obj *ocl, char *file_name, cl_mem *buf, size_t n, size
     return;
 }
 
-//file to cl_mem
-void file_write(struct ocl_obj *ocl, char *file_name, cl_mem *buf, size_t n, size_t w)
+//cl_mem to file
+void file_write(struct ocl_obj *ocl, char *file_name, cl_mem *buf, size_t n, size_t w, int idx)
 {
     char file_path[250];
-    sprintf(file_path, "%s/%s", ROOT_READ, file_name);
+    sprintf(file_path, "%s/%s.%03d.dat", ROOT_WRITE, file_name, idx);
     
     FILE* file_ptr = fopen(file_path,"wb");
     void* host_ptr = clEnqueueMapBuffer(ocl->command_queue, *buf, CL_TRUE, CL_MAP_READ, 0, n*w, 0, NULL, NULL, &ocl->err);

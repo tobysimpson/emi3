@@ -27,26 +27,20 @@ void write_xmf(struct vxl_obj *vxl, int idx)
     fprintf(file1,"    <Grid Name=\"vxl\" GridType=\"Uniform\">\n");
     fprintf(file1,"      <Topology name=\"topo\" TopologyType=\"3DCoRectMesh\" Dimensions=\"%d %d %d\"></Topology>\n", vxl->nv.z, vxl->nv.y, vxl->nv.x);
     fprintf(file1,"      <Geometry name=\"geo\" Type=\"ORIGIN_DXDYDZ\">\n");
-    fprintf(file1,"        <DataItem Format=\"XML\" Dimensions=\"3\">%e %e %e</DataItem>\n", vxl->x0.x, vxl->x0.y, vxl->x0.z);
+    fprintf(file1,"        <DataItem Format=\"XML\" Dimensions=\"3\">0 0 0</DataItem>\n");
     fprintf(file1,"        <DataItem Format=\"XML\" Dimensions=\"3\">%e %e %e</DataItem>\n", vxl->dx, vxl->dx, vxl->dx);
     fprintf(file1,"      </Geometry>\n");
-    fprintf(file1,"      <Attribute ItemType=\"Uniform\" Name=\"vxl_tag\" Center=\"Cell\" AttributeType=\"Scalar\">\n");
-    fprintf(file1,"        <DataItem Format=\"Binary\" Dimensions=\"%d %d %d\" Endian=\"Little\" Precision=\"4\" NumberType=\"Float\">vxl_tag.dat</DataItem>\n", vxl->ne.z, vxl->ne.y, vxl->ne.x);
-    fprintf(file1,"      </Attribute>\n");
-    fprintf(file1,"      <Attribute ItemType=\"Uniform\" Name=\"vxl_dat\" Center=\"Cell\" AttributeType=\"Matrix\">\n");
-    fprintf(file1,"        <DataItem Format=\"Binary\" Dimensions=\"%d %d %d 2\" Endian=\"Little\" Precision=\"4\" NumberType=\"Float\">vxl_dat.%03d.dat</DataItem>\n", vxl->ne.z, vxl->ne.y, vxl->ne.x, idx);
+    fprintf(file1,"      <Attribute ItemType=\"Uniform\" Name=\"gg\" Center=\"Cell\" AttributeType=\"Scalar\">\n");
+    fprintf(file1,"        <DataItem Format=\"Binary\" Dimensions=\"%d %d %d\" Endian=\"Little\" Precision=\"4\" NumberType=\"Float\">gg.000.dat</DataItem>\n", vxl->ne.z, vxl->ne.y, vxl->ne.x);
     fprintf(file1,"      </Attribute>\n");
     
-//    fprintf(file1,"      <Attribute Name=\"gg\" Center=\"Cell\" AttributeType=\"Matrix\">\n");
-//    fprintf(file1,"        <DataItem Format=\"Binary\" Dimensions=\"%llu %llu %llu 4\" Endian=\"Little\" Precision=\"4\" NumberType=\"Float\">\n", vxl->ne.z, vxl->ne.y, vxl->ne.x);
-//    fprintf(file1,"             /Users/toby/Downloads/raw/gg.%02u%02u%02u.%03d.raw\n", vxl->le.x, vxl->le.y, vxl->le.z, idx);
-//    fprintf(file1,"           </DataItem>\n");
-//    fprintf(file1,"         </Attribute>\n");
-//    fprintf(file1,"       <Attribute Name=\"uu\" Center=\"Node\" AttributeType=\"Vector\">\n");
-//    fprintf(file1,"         <DataItem Format=\"Binary\" Dimensions=\"%llu %llu %llu 3\" Endian=\"Little\" Precision=\"4\" NumberType=\"Float\">\n", vxl->nv.z, vxl->nv.y, vxl->nv.x);
-//    fprintf(file1,"             /Users/toby/Downloads/raw/uu.%02u%02u%02u.%03d.raw\n", vxl->le.x, vxl->le.y, vxl->le.z, idx);
-//    fprintf(file1,"         </DataItem>\n");
-//    fprintf(file1,"       </Attribute>\n");
+    fprintf(file1,"      <Attribute ItemType=\"Uniform\" Name=\"uu\" Center=\"Cell\" AttributeType=\"Scalar\">\n");
+    fprintf(file1,"        <DataItem Format=\"Binary\" Dimensions=\"%d %d %d\" Endian=\"Little\" Precision=\"4\" NumberType=\"Float\">uu.%03d.dat</DataItem>\n", vxl->ne.z, vxl->ne.y, vxl->ne.x, idx);
+    fprintf(file1,"      </Attribute>\n");
+    
+//    fprintf(file1,"      <Attribute ItemType=\"Uniform\" Name=\"uu\" Center=\"Cell\" AttributeType=\"Matrix\">\n");
+//    fprintf(file1,"        <DataItem Format=\"Binary\" Dimensions=\"%d %d %d 2\" Endian=\"Little\" Precision=\"4\" NumberType=\"Float\">uu.%03d.dat</DataItem>\n", vxl->ne.z, vxl->ne.y, vxl->ne.x, idx);
+//    fprintf(file1,"      </Attribute>\n");
 
     fprintf(file1,"    </Grid>\n");
     fprintf(file1,"  </Domain>\n");
