@@ -37,7 +37,7 @@ int main(int argc, const char * argv[])
     struct vxl_obj vxl;
     vxl.dt = 0.1f;
     vxl.dx = 1.0f;
-    vxl.ne = (cl_int3){10,10,10};
+    vxl.ne = (cl_int3){10,1,10};
 //    vxl.ne = (cl_int3){67,14,14};
     vxl_ini(&vxl);
     
@@ -47,27 +47,34 @@ int main(int argc, const char * argv[])
     cl_mem bb = clCreateBuffer(ocl.context, CL_MEM_READ_WRITE, vxl.ne_tot*sizeof(cl_float2), NULL, &ocl.err);
     
     //read
-    file_read(&ocl, "vxl_tag.dat", &gg, vxl.ne_tot, sizeof(cl_float));
+//    file_read(&ocl, "vxl_tag.dat", &gg, vxl.ne_tot, sizeof(cl_float));
     
-    //write
-    file_write(&ocl, "gg", &gg, vxl.ne_tot, sizeof(cl_float), 0);
+
 
     //kernels
     cl_kernel vxl_ini = clCreateKernel(ocl.program, "vxl_ini", &ocl.err);
     cl_kernel vxl_jac = clCreateKernel(ocl.program, "vxl_jac", &ocl.err);
+    cl_kernel vxl_exp = clCreateKernel(ocl.program, "vxl_ee1", &ocl.err);
 
     //args
-    ocl.err = clSetKernelArg(vxl_ini,  0, sizeof(struct vxl_obj),   (void*)&vxl);
-    ocl.err = clSetKernelArg(vxl_ini,  1, sizeof(cl_mem),           (void*)&gg);
-    ocl.err = clSetKernelArg(vxl_ini,  2, sizeof(cl_mem),           (void*)&uu);
+    ocl.err = clSetKernelArg(vxl_ini, 0, sizeof(struct vxl_obj),   (void*)&vxl);
+    ocl.err = clSetKernelArg(vxl_ini, 1, sizeof(cl_mem),           (void*)&gg);
+    ocl.err = clSetKernelArg(vxl_ini, 2, sizeof(cl_mem),           (void*)&uu);
     
-    ocl.err = clSetKernelArg(vxl_jac,  0, sizeof(struct vxl_obj),   (void*)&vxl);
-    ocl.err = clSetKernelArg(vxl_jac,  1, sizeof(cl_mem),           (void*)&gg);
-    ocl.err = clSetKernelArg(vxl_jac,  2, sizeof(cl_mem),           (void*)&uu);
-    ocl.err = clSetKernelArg(vxl_jac,  3, sizeof(cl_mem),           (void*)&bb);
+    ocl.err = clSetKernelArg(vxl_jac, 0, sizeof(struct vxl_obj),   (void*)&vxl);
+    ocl.err = clSetKernelArg(vxl_jac, 1, sizeof(cl_mem),           (void*)&gg);
+    ocl.err = clSetKernelArg(vxl_jac, 2, sizeof(cl_mem),           (void*)&uu);
+    ocl.err = clSetKernelArg(vxl_jac, 3, sizeof(cl_mem),           (void*)&bb);
     
-    //run
+    ocl.err = clSetKernelArg(vxl_exp, 0, sizeof(struct vxl_obj),   (void*)&vxl);
+    ocl.err = clSetKernelArg(vxl_exp, 1, sizeof(cl_mem),           (void*)&gg);
+    ocl.err = clSetKernelArg(vxl_exp, 2, sizeof(cl_mem),           (void*)&uu);
+    
+    //init
     ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, vxl_ini, 3, NULL, (size_t*)&vxl.ne_sz, NULL, 0, NULL, &ocl.event);
+    
+    //write
+    file_write(&ocl, "gg", &gg, vxl.ne_tot, sizeof(cl_float), 0);
     
     //frames
     for(int frm_idx=0; frm_idx<100; frm_idx++)
@@ -79,16 +86,19 @@ int main(int argc, const char * argv[])
         file_write(&ocl, "uu", &uu, vxl.ne_tot, sizeof(cl_float2), frm_idx);
         
         //time per fame
-        for(int t=0; t<10; t++)
+        for(int t=0; t<1; t++)
         {
-            //ie rhs
-            ocl.err = clEnqueueCopyBuffer(ocl.command_queue, uu, bb, 0, 0, vxl.ne_tot*sizeof(cl_float2), 0, NULL, &ocl.event);
+            //ee
+            ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, vxl_exp, 3, NULL, (size_t*)&vxl.ne_sz, NULL, 0, NULL, &ocl.event);
             
-            //ie jacobi
-            for(int t=0; t<10; t++)
-            {
-                ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, vxl_jac, 3, NULL, (size_t*)&vxl.ne_sz, NULL, 0, NULL, &ocl.event);
-            }
+//            //ie rhs
+//            ocl.err = clEnqueueCopyBuffer(ocl.command_queue, uu, bb, 0, 0, vxl.ne_tot*sizeof(cl_float2), 0, NULL, &ocl.event);
+//            
+//            //ie jacobi
+//            for(int t=0; t<10; t++)
+//            {
+//                ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, vxl_jac, 3, NULL, (size_t*)&vxl.ne_sz, NULL, 0, NULL, &ocl.event);
+//            }
         }
     }
 

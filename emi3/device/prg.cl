@@ -13,7 +13,9 @@
  */
 
 constant int3   off[6]  = {{-1,0,0},{+1,0,0},{0,-1,0},{0,+1,0},{0,0,-1},{0,0,+1}};
-constant float2 c       = {1.0f,1.0f};
+
+constant float2 c1      = {0.5f,0.1f};
+constant float2 c2      = {1.0f,1.0f};
 
 /*
  =============================
@@ -72,20 +74,53 @@ kernel void vxl_ini(const  struct vxl_obj    vxl,
     int3 vxl_pos = (int3){get_global_id(0),get_global_id(1),get_global_id(2)};
     int  vxl_idx = utl_idx(vxl_pos, vxl.ne);
     
+    gg[vxl_idx] = vxl_pos.x >= vxl.ne.x/2;
+    
     //init
-    uu[vxl_idx].x = convert_float(vxl_pos.x >= vxl.ne.x/2);
-    uu[vxl_idx].y = convert_float(vxl_pos.y >= vxl.ne.y/2);
-
-    
-//    uu[vxl_idx] = convert_float(vxl_pos.xy > vxl.ne.xy/2);
-    
-//    printf("ini %5d [%2d %2d %2d] %f %f\n", idx, pos.x, pos.y, pos.z, vxl_dat[idx].x, vxl_dat[idx].y);
+//    uu[vxl_idx].x = convert_float(vxl_pos.x >= vxl.ne.x/2);
+//    uu[vxl_idx].y = convert_float(vxl_pos.y >= vxl.ne.y/2);
 
     return;
 }
 
 
-//jacobi euler
+//ee
+kernel void vxl_ee1(const  struct vxl_obj    vxl,
+                    global float            *gg,
+                    global float2           *uu)
+{
+    int3  vxl_pos  = (int3){get_global_id(0), get_global_id(1), get_global_id(2)};
+    int   vxl_idx  = utl_idx(vxl_pos, vxl.ne);
+    
+    float2 s = 0.0f;
+    
+    //stencil
+    for(int i=0; i<6; i++)
+    {
+        int3    adj_pos = vxl_pos + off[i];
+        int     adj_idx = utl_idx(adj_pos, vxl.ne);
+        int     adj_bnd = utl_bnd(adj_pos, vxl.ne);
+        
+        if(adj_bnd)
+        {
+            float2 dg = gg[adj_idx] - gg[vxl_idx];
+            float2 du = uu[adj_idx] - uu[vxl_idx];
+            
+            s +=  c1*du + c2*(du - dg);
+        }
+    }
+    
+    //constants
+    float2 alp = vxl.dt*vxl.rdx2;
+    
+    //ee
+    uu[vxl_idx] += alp*s;
+
+    return;
+}
+
+
+//ie jacobi
 kernel void vxl_jac(const  struct vxl_obj    vxl,
                     global float            *gg,
                     global float2           *uu,
@@ -112,7 +147,7 @@ kernel void vxl_jac(const  struct vxl_obj    vxl,
     }
     
     //constants
-    float2 alp = c*vxl.dt*vxl.rdx2;
+    float2 alp = c1*vxl.dt*vxl.rdx2;
     
     //ie
     uu[vxl_idx] = (bb[vxl_idx] + alp*s)/(1e0f - alp*d);
@@ -124,39 +159,6 @@ kernel void vxl_jac(const  struct vxl_obj    vxl,
 
 
 
-
-
-//explicit euler
-kernel void vxl_ion(const  struct vxl_obj    vxl,
-                    global float            *gg,
-                    global float2           *uu)
-{
-    int3 pos = {get_global_id(0), get_global_id(1), get_global_id(2)};
-    int  idx = utl_idx(pos, vxl.ne);
-     
-    //sum
-    float2  d = 0.0f;
-    float2  s = 0.0f;
-
-    //stencil
-    for(int j=0; j<6; j++)
-    {
-        int3 posj = pos + off[j];
-        int  bndj = utl_bnd(posj, vxl.ne);
-        int  idxj = utl_idx(posj, vxl.ne);
-        
-        d += bndj;
-        s += bndj*uu[idxj];
-    }
-    
-    //explicit
-    uu[idx] += vxl.dt*vxl.rdx2*c*(s - d*uu[idx]);
-    
-    //fwd
-    //Au[idx] = vxl.rdx2*(6.0f*uu[idx] - s);
-
-    return;
-}
 
 
 /*
