@@ -95,7 +95,7 @@ kernel void vxl_jac(const  struct vxl_obj    vxl,
     int   vxl_idx  = utl_idx(vxl_pos, vxl.ne);
     
     float2 s = 0.0f;
-    float  d = 0.0f;
+    float2 d = 0.0f;
     
     //stencil
     for(int i=0; i<6; i++)
@@ -117,7 +117,6 @@ kernel void vxl_jac(const  struct vxl_obj    vxl,
     //ie
     uu[vxl_idx] = (bb[vxl_idx] + alp*s)/(1e0f - alp*d);
 
-    
     return;
 }
 
