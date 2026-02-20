@@ -16,7 +16,7 @@
 #include "xdmf.h"
 
 
-//voxel diffusion
+//voxel diffusion/pump
 int main(int argc, const char * argv[])
 {
     printf("hello\n");
@@ -37,7 +37,7 @@ int main(int argc, const char * argv[])
     struct vxl_obj vxl;
     vxl.dt = 0.1f;
     vxl.dx = 1.0f;
-    vxl.ne = (cl_int3){10,1,10};
+    vxl.ne = (cl_int3){10,10,10};
 //    vxl.ne = (cl_int3){67,14,14};
     vxl_ini(&vxl);
     
