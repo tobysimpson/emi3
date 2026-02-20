@@ -14,8 +14,10 @@
 
 constant int3   off[6]  = {{-1,0,0},{+1,0,0},{0,-1,0},{0,+1,0},{0,0,-1},{0,0,+1}};
 
-constant float2 c1      = {0.5f,0.1f};
-constant float2 c2      = {1.0f,1.0f};
+constant float2 c1      = { 0.2f, 0.5f};    //conductivity
+constant float2 c2      = { 1.0f, 0.5f};    //pump speed
+constant float2 c3      = {+1.0f,-1.0f};    //pump direction
+
 
 /*
  =============================
@@ -103,7 +105,7 @@ kernel void vxl_ee1(const  struct vxl_obj    vxl,
         
         if(adj_bnd)
         {
-            float2 dg = gg[adj_idx] - gg[vxl_idx];
+            float2 dg = c3*(gg[adj_idx] - gg[vxl_idx]);
             float2 du = uu[adj_idx] - uu[vxl_idx];
             
             s +=  c1*du + c2*(du - dg);
