@@ -9,47 +9,53 @@
 #define vxl_h
 
 
+struct dim_obj
+{
+    cl_int3     dim;
+    int         tot;
+    size_t      sz[3];
+};
+
+
 struct vxl_obj
 {
     float dt;
     float dx;
+    
+    struct dim_obj ele;
+    struct dim_obj vtx;
 
-    cl_int3 ne;
-    cl_int3 nv;
-    
-    int ne_tot;
-    int nv_tot;
-    
     float rdx2;
-    
-    size_t ne_sz[3];
-    size_t nv_sz[3];
 };
 
 
 //init
+void dim_ini(struct dim_obj *obj)
+{
+    obj->tot = obj->dim.x*obj->dim.y*obj->dim.z;
+    
+    obj->sz[0] = obj->dim.x;
+    obj->sz[1] = obj->dim.y;
+    obj->sz[2] = obj->dim.z;
+
+    return;
+}
+
+//init
 void vxl_ini(struct vxl_obj *vxl)
 {
-    vxl->nv.x = vxl->ne.x+1;
-    vxl->nv.y = vxl->ne.y+1;
-    vxl->nv.z = vxl->ne.z+1;
-
-    vxl->ne_tot = vxl->ne.x*vxl->ne.y*vxl->ne.z;
-    vxl->nv_tot = vxl->nv.x*vxl->nv.y*vxl->nv.z;
+    vxl->vtx.dim.x = vxl->ele.dim.x + 1;
+    vxl->vtx.dim.y = vxl->ele.dim.y + 1;
+    vxl->vtx.dim.z = vxl->ele.dim.z + 1;
     
-    vxl->ne_sz[0] = vxl->ne.x;
-    vxl->ne_sz[1] = vxl->ne.y;
-    vxl->ne_sz[2] = vxl->ne.z;
-    
-    vxl->nv_sz[0] = vxl->nv.x;
-    vxl->nv_sz[1] = vxl->nv.y;
-    vxl->nv_sz[2] = vxl->nv.z;
+    dim_ini(&vxl->ele);
+    dim_ini(&vxl->vtx);
     
     vxl->rdx2 = pow(vxl->dx, -2);
 
-    printf("vxl.dx %f\n", vxl->dx);
-    printf("vxl.ne [%u,%u,%u]\n", vxl->ne.x, vxl->ne.y, vxl->ne.z);
-    printf("vxl.ne_tot %3u\n", vxl->ne_tot);
+    printf("dx %f dt %f\n", vxl->dx, vxl->dt);
+    printf("ele [%d %d %d] %d\n", vxl->ele.dim.x, vxl->ele.dim.y, vxl->ele.dim.z, vxl->ele.tot);
+//    printf("vtx [%d %d %d] %d\n", vxl->vtx.dim.x, vxl->vtx.dim.y, vxl->vtx.dim.z, vxl->vtx.tot);
 
     return;
 }

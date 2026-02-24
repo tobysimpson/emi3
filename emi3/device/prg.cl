@@ -25,23 +25,24 @@ constant float2 c4      = {+1.0f,-1.0f};    //conductivity gate
  =============================
  */
 
+struct dim_obj
+{
+    int3    dim;
+    int     tot;
+    ulong   sz[3];
+};
+
 
 //object
 struct vxl_obj
 {
     float dt;
     float dx;
+    
+    struct dim_obj ele;
+    struct dim_obj vtx;
 
-    int3 ne;
-    int3 nv;
-    
-    int ne_tot;
-    int nv_tot;
-    
     float rdx2;
-    
-    ulong ne_sz[3];
-    ulong nv_sz[3];
 };
 
 
@@ -74,9 +75,9 @@ kernel void vxl_ini(const  struct vxl_obj    vxl,
                     global float2           *uu)
 {
     int3 vxl_pos = (int3){get_global_id(0),get_global_id(1),get_global_id(2)};
-    int  vxl_idx = utl_idx(vxl_pos, vxl.ne);
+    int  vxl_idx = utl_idx(vxl_pos, vxl.ele.dim);
     
-    gg[vxl_idx] = vxl_pos.x >= vxl.ne.x/2;
+    gg[vxl_idx] = vxl_pos.x >= vxl.ele.dim.x/2;
     
     //init
     uu[vxl_idx] = gg[vxl_idx]; //convert_float2(vxl_pos.xy);
@@ -91,7 +92,7 @@ kernel void vxl_exp(const  struct vxl_obj    vxl,
                     global float2           *uu)
 {
     int3  vxl_pos  = (int3){get_global_id(0), get_global_id(1), get_global_id(2)};
-    int   vxl_idx  = utl_idx(vxl_pos, vxl.ne);
+    int   vxl_idx  = utl_idx(vxl_pos, vxl.ele.dim);
     
     float2 s = 0.0f;
     
@@ -99,8 +100,8 @@ kernel void vxl_exp(const  struct vxl_obj    vxl,
     for(int i=0; i<6; i++)
     {
         int3    adj_pos = vxl_pos + off[i];
-        int     adj_idx = utl_idx(adj_pos, vxl.ne);
-        int     adj_bnd = utl_bnd(adj_pos, vxl.ne);
+        int     adj_idx = utl_idx(adj_pos, vxl.ele.dim);
+        int     adj_bnd = utl_bnd(adj_pos, vxl.ele.dim);
         
         if(adj_bnd)
         {
@@ -128,7 +129,7 @@ kernel void vxl_rhs(const  struct vxl_obj    vxl,
                     global float2           *bb)
 {
     int3  vxl_pos  = (int3){get_global_id(0), get_global_id(1), get_global_id(2)};
-    int   vxl_idx  = utl_idx(vxl_pos, vxl.ne);
+    int   vxl_idx  = utl_idx(vxl_pos, vxl.ele.dim);
     
     //write
     bb[vxl_idx] = uu[vxl_idx];
@@ -144,7 +145,7 @@ kernel void vxl_jac(const  struct vxl_obj    vxl,
                     global float2           *bb)
 {
     int3  vxl_pos  = (int3){get_global_id(0), get_global_id(1), get_global_id(2)};
-    int   vxl_idx  = utl_idx(vxl_pos, vxl.ne);
+    int   vxl_idx  = utl_idx(vxl_pos, vxl.ele.dim);
     
     float2 s = 0.0f;
     float2 d = 0.0f;
@@ -153,8 +154,8 @@ kernel void vxl_jac(const  struct vxl_obj    vxl,
     for(int i=0; i<6; i++)
     {
         int3    adj_pos = vxl_pos + off[i];
-        int     adj_idx = utl_idx(adj_pos, vxl.ne);
-        int     adj_bnd = utl_bnd(adj_pos, vxl.ne);
+        int     adj_idx = utl_idx(adj_pos, vxl.ele.dim);
+        int     adj_bnd = utl_bnd(adj_pos, vxl.ele.dim);
         
         if(adj_bnd)
         {
@@ -168,8 +169,6 @@ kernel void vxl_jac(const  struct vxl_obj    vxl,
     
     //ie
     uu[vxl_idx] = (bb[vxl_idx] + alp*s)/(1e0f - alp*d);
-    
-//    uu[vxl_idx] = bb[vxl_idx]; //convert_float2(vxl_pos.xy);
 
     return;
 }
