@@ -17,6 +17,7 @@ constant int3   off[6]  = {{-1,0,0},{+1,0,0},{0,-1,0},{0,+1,0},{0,0,-1},{0,0,+1}
 constant float2 c1      = { 0.2f, 0.5f};    //conductivity diffusion
 constant float2 c2      = { 1.0f, 0.5f};    //conductivity pump
 constant float2 c3      = {+1.0f,-1.0f};    //direction/magnitude pump
+constant float2 c4      = {+1.0f,-1.0f};    //conductivity gate
 
 /*
  =============================
@@ -78,15 +79,14 @@ kernel void vxl_ini(const  struct vxl_obj    vxl,
     gg[vxl_idx] = vxl_pos.x >= vxl.ne.x/2;
     
     //init
-//    uu[vxl_idx].x = convert_float(vxl_pos.x >= vxl.ne.x/2);
-//    uu[vxl_idx].y = convert_float(vxl_pos.y >= vxl.ne.y/2);
+    uu[vxl_idx] = gg[vxl_idx]; //convert_float2(vxl_pos.xy);
 
     return;
 }
 
 
 //ee
-kernel void vxl_ee1(const  struct vxl_obj    vxl,
+kernel void vxl_exp(const  struct vxl_obj    vxl,
                     global float            *gg,
                     global float2           *uu)
 {
@@ -117,6 +117,22 @@ kernel void vxl_ee1(const  struct vxl_obj    vxl,
     //ee
     uu[vxl_idx] += alp*s;
 
+    return;
+}
+
+
+//ie jacobi rhs
+kernel void vxl_rhs(const  struct vxl_obj    vxl,
+                    global float            *gg,
+                    global float2           *uu,
+                    global float2           *bb)
+{
+    int3  vxl_pos  = (int3){get_global_id(0), get_global_id(1), get_global_id(2)};
+    int   vxl_idx  = utl_idx(vxl_pos, vxl.ne);
+    
+    //write
+    bb[vxl_idx] = uu[vxl_idx];
+    
     return;
 }
 
@@ -152,6 +168,8 @@ kernel void vxl_jac(const  struct vxl_obj    vxl,
     
     //ie
     uu[vxl_idx] = (bb[vxl_idx] + alp*s)/(1e0f - alp*d);
+    
+//    uu[vxl_idx] = bb[vxl_idx]; //convert_float2(vxl_pos.xy);
 
     return;
 }

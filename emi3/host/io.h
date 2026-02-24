@@ -11,11 +11,7 @@
 #define ROOT_READ   "/Users/toby/Downloads/tet"
 #define ROOT_WRITE  "/Users/toby/Downloads/vxl"
 
-/*
- =============================
- util
- =============================
- */
+
 
 //file length in bytes
 size_t file_size(char* file_name)
@@ -33,11 +29,6 @@ size_t file_size(char* file_name)
     return n;
 }
 
-/*
- =============================
- read
- =============================
- */
 
 //file to cl_mem
 void file_read(struct ocl_obj *ocl, char *file_name, cl_mem *buf, size_t n, size_t w)
@@ -57,6 +48,7 @@ void file_read(struct ocl_obj *ocl, char *file_name, cl_mem *buf, size_t n, size
     
     return;
 }
+
 
 //cl_mem to file
 void file_write(struct ocl_obj *ocl, char *file_name, cl_mem *buf, size_t n, size_t w, int idx)

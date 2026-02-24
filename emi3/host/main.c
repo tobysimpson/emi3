@@ -49,26 +49,30 @@ int main(int argc, const char * argv[])
     //read
 //    file_read(&ocl, "vxl_tag.dat", &gg, vxl.ne_tot, sizeof(cl_float));
     
-
-
     //kernels
     cl_kernel vxl_ini = clCreateKernel(ocl.program, "vxl_ini", &ocl.err);
+    cl_kernel vxl_exp = clCreateKernel(ocl.program, "vxl_exp", &ocl.err);
+    cl_kernel vxl_rhs = clCreateKernel(ocl.program, "vxl_rhs", &ocl.err);
     cl_kernel vxl_jac = clCreateKernel(ocl.program, "vxl_jac", &ocl.err);
-    cl_kernel vxl_exp = clCreateKernel(ocl.program, "vxl_ee1", &ocl.err);
-
+    
     //args
     ocl.err = clSetKernelArg(vxl_ini, 0, sizeof(struct vxl_obj),   (void*)&vxl);
     ocl.err = clSetKernelArg(vxl_ini, 1, sizeof(cl_mem),           (void*)&gg);
     ocl.err = clSetKernelArg(vxl_ini, 2, sizeof(cl_mem),           (void*)&uu);
     
+    ocl.err = clSetKernelArg(vxl_exp, 0, sizeof(struct vxl_obj),   (void*)&vxl);
+    ocl.err = clSetKernelArg(vxl_exp, 1, sizeof(cl_mem),           (void*)&gg);
+    ocl.err = clSetKernelArg(vxl_exp, 2, sizeof(cl_mem),           (void*)&uu);
+    
+    ocl.err = clSetKernelArg(vxl_rhs, 0, sizeof(struct vxl_obj),   (void*)&vxl);
+    ocl.err = clSetKernelArg(vxl_rhs, 1, sizeof(cl_mem),           (void*)&gg);
+    ocl.err = clSetKernelArg(vxl_rhs, 2, sizeof(cl_mem),           (void*)&uu);
+    ocl.err = clSetKernelArg(vxl_rhs, 3, sizeof(cl_mem),           (void*)&bb);
+    
     ocl.err = clSetKernelArg(vxl_jac, 0, sizeof(struct vxl_obj),   (void*)&vxl);
     ocl.err = clSetKernelArg(vxl_jac, 1, sizeof(cl_mem),           (void*)&gg);
     ocl.err = clSetKernelArg(vxl_jac, 2, sizeof(cl_mem),           (void*)&uu);
     ocl.err = clSetKernelArg(vxl_jac, 3, sizeof(cl_mem),           (void*)&bb);
-    
-    ocl.err = clSetKernelArg(vxl_exp, 0, sizeof(struct vxl_obj),   (void*)&vxl);
-    ocl.err = clSetKernelArg(vxl_exp, 1, sizeof(cl_mem),           (void*)&gg);
-    ocl.err = clSetKernelArg(vxl_exp, 2, sizeof(cl_mem),           (void*)&uu);
     
     //init
     ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, vxl_ini, 3, NULL, (size_t*)&vxl.ne_sz, NULL, 0, NULL, &ocl.event);
@@ -89,16 +93,17 @@ int main(int argc, const char * argv[])
         for(int t=0; t<1; t++)
         {
             //ee
-            ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, vxl_exp, 3, NULL, (size_t*)&vxl.ne_sz, NULL, 0, NULL, &ocl.event);
+//            ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, vxl_exp, 3, NULL, (size_t*)&vxl.ne_sz, NULL, 0, NULL, &ocl.event);
             
-//            //ie rhs
+            //ie rhs
 //            ocl.err = clEnqueueCopyBuffer(ocl.command_queue, uu, bb, 0, 0, vxl.ne_tot*sizeof(cl_float2), 0, NULL, &ocl.event);
-//            
-//            //ie jacobi
-//            for(int t=0; t<10; t++)
-//            {
-//                ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, vxl_jac, 3, NULL, (size_t*)&vxl.ne_sz, NULL, 0, NULL, &ocl.event);
-//            }
+            ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, vxl_rhs, 3, NULL, (size_t*)&vxl.ne_sz, NULL, 0, NULL, &ocl.event);
+            
+            //ie jacobi
+            for(int t=0; t<10; t++)
+            {
+                ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, vxl_jac, 3, NULL, (size_t*)&vxl.ne_sz, NULL, 0, NULL, &ocl.event);
+            }
         }
     }
 
