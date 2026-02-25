@@ -16,19 +16,19 @@
 constant int3   off[6]  = {{-1,+0,+0},{+1,+0,+0},{+0,-1,+0},{+0,+1,+0},{+0,+0,-1},{+0,+0,+1}};
 
 //passive conductivity
-constant float2 cc1[9] = {{1.0f,1.0f},{1.0f,0.0f},{0.0f,1.0f},
+constant float2 cc1[9] = {{1.0f,1.0f},{1.0f,0.0f},{1.0f,0.0f},
                           {1.0f,0.0f},{1.0f,1.0f},{0.0f,0.0f},
-                          {0.0f,1.0f},{0.0f,0.0f},{1.0f,1.0f}};
+                          {1.0f,0.0f},{0.0f,0.0f},{1.0f,1.0f}};
 
 //pump conductivity
 constant float2 pp1[9] = {{0.0f,0.0f},{0.0f,0.0f},{0.0f,0.0f},
-                          {0.0f,0.0f},{0.0f,0.0f},{1.0f,0.0f},
-                          {0.0f,0.0f},{1.0f,0.0f},{0.0f,0.0f}};
+                          {0.0f,0.0f},{0.0f,0.0f},{1.0f,1.0f},
+                          {0.0f,0.0f},{1.0f,1.0f},{0.0f,0.0f}};
 
 //pump level
 constant float2 pp2[9] = {{+0.0f,+0.0f},{+0.0f,+0.0f},{+0.0f,+0.0f},
-                          {+0.0f,+0.0f},{+0.0f,+0.0f},{+1.0f,+0.0f},
-                          {+0.0f,+0.0f},{-1.0f,+0.0f},{+0.0f,+0.0f}};
+                          {+0.0f,+0.0f},{+0.0f,+0.0f},{+1.0f,-1.0f},
+                          {+0.0f,+0.0f},{-1.0f,+1.0f},{+0.0f,+0.0f}};
 
 
 /*
@@ -94,7 +94,7 @@ kernel void vxl_ini(const  struct vxl_obj    vxl,
     gg[vxl_idx] = (vxl_pos.x >= vxl.ele.dim.x/2)*((vxl_pos.y >= vxl.ele.dim.y/2)+1);
     
     //init
-    uu[vxl_idx] = vxl_pos.x == 0;
+//    uu[vxl_idx] = vxl_pos.x == 0;
     
     return;
 }
@@ -166,7 +166,7 @@ kernel void vxl_jac(const  struct vxl_obj    vxl,
             int cnd_idx = gg[vxl_idx]*3 + gg[adj_idx];      //lookup
             
             float2 c1 = cc1[cnd_idx];                        //passive conductivity
-            float2 p1 = cc1[cnd_idx];                        //pump conductivity
+            float2 p1 = pp1[cnd_idx];                        //pump conductivity
             
             d -= (c1+p1);
             s += (c1+p1)*uu[adj_idx];
