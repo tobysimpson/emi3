@@ -19,6 +19,10 @@ constant float2 c2      = { 1.0f, 0.5f};    //conductivity pump
 constant float2 c3      = {+1.0f,-1.0f};    //direction/magnitude pump
 constant float2 c4      = {+1.0f,-1.0f};    //conductivity gate
 
+constant float cc[3][3] = {{1.0f,1.0f,1.0f},
+                           {1.0f,1.0f,0.0f},
+                           {1.0f,0.0f,1.0f}};
+
 /*
  =============================
  struct
@@ -80,7 +84,7 @@ kernel void vxl_ini(const  struct vxl_obj    vxl,
     gg[vxl_idx] = (vxl_pos.x >= vxl.ele.dim.x/2)*((vxl_pos.y >= vxl.ele.dim.y/2)+1);
     
     //init
-    uu[vxl_idx] = gg[vxl_idx]; //convert_float2(vxl_pos.xy);
+    uu[vxl_idx] = gg[vxl_idx] == 2; //convert_float2(vxl_pos.xy);
 
     return;
 }
@@ -88,7 +92,7 @@ kernel void vxl_ini(const  struct vxl_obj    vxl,
 
 //ee
 kernel void vxl_exp(const  struct vxl_obj    vxl,
-                    global float            *gg,
+                    global int              *gg,
                     global float2           *uu)
 {
     int3  vxl_pos  = (int3){get_global_id(0), get_global_id(1), get_global_id(2)};
@@ -125,7 +129,7 @@ kernel void vxl_exp(const  struct vxl_obj    vxl,
 
 //ie jacobi
 kernel void vxl_jac(const  struct vxl_obj    vxl,
-                    global float            *gg,
+                    global int              *gg,
                     global float2           *uu,
                     global float2           *bb)
 {
@@ -144,13 +148,14 @@ kernel void vxl_jac(const  struct vxl_obj    vxl,
         
         if(adj_bnd)
         {
-            d -= 1e0f;
-            s += uu[adj_idx];
+            float c = cc[gg[vxl_idx]][gg[adj_idx]];   //conductivity per edge
+            d -= c;
+            s += c*uu[adj_idx];
         }
     }
     
     //constants
-    float2 alp = c1*vxl.dt*vxl.rdx2;
+    float2 alp = vxl.dt*vxl.rdx2;
     
     //ie
     uu[vxl_idx] = (bb[vxl_idx] + alp*s)/(1e0f - alp*d);
