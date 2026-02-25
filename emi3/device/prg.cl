@@ -122,21 +122,6 @@ kernel void vxl_exp(const  struct vxl_obj    vxl,
 }
 
 
-//ie jacobi rhs
-kernel void vxl_rhs(const  struct vxl_obj    vxl,
-                    global float            *gg,
-                    global float2           *uu,
-                    global float2           *bb)
-{
-    int3  vxl_pos  = (int3){get_global_id(0), get_global_id(1), get_global_id(2)};
-    int   vxl_idx  = utl_idx(vxl_pos, vxl.ele.dim);
-    
-    //write
-    bb[vxl_idx] = uu[vxl_idx];
-    
-    return;
-}
-
 
 //ie jacobi
 kernel void vxl_jac(const  struct vxl_obj    vxl,
