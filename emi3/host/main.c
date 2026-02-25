@@ -35,7 +35,7 @@ int main(int argc, const char * argv[])
     ocl_ini(&ocl);
     
     struct vxl_obj vxl;
-    vxl.dt = 0.2f;
+    vxl.dt = 0.1f;
     vxl.dx = 1.0f;
     vxl.ele.dim = (cl_int3){8,8,8};
 //    vxl.ne = (cl_int3){67,14,14};
@@ -45,6 +45,7 @@ int main(int argc, const char * argv[])
     cl_mem gg = clCreateBuffer(ocl.context, CL_MEM_READ_WRITE, vxl.ele.tot*sizeof(cl_int),    NULL, &ocl.err);
     cl_mem uu = clCreateBuffer(ocl.context, CL_MEM_READ_WRITE, vxl.ele.tot*sizeof(cl_float2), NULL, &ocl.err);
     cl_mem bb = clCreateBuffer(ocl.context, CL_MEM_READ_WRITE, vxl.ele.tot*sizeof(cl_float2), NULL, &ocl.err);
+
     
     //read
 //    file_read(&ocl, "vxl_tag.dat", &gg, vxl.ne_tot, sizeof(cl_float));
@@ -74,6 +75,8 @@ int main(int argc, const char * argv[])
     //write
     file_write(&ocl, "gg", &gg, vxl.ele.tot, sizeof(cl_int), 0);
     
+    
+
     //frames
     for(int frm_idx=0; frm_idx<100; frm_idx++)
     {
@@ -93,12 +96,13 @@ int main(int argc, const char * argv[])
             ocl.err = clEnqueueCopyBuffer(ocl.command_queue, uu, bb, 0, 0, vxl.ele.tot*sizeof(cl_float2), 0, NULL, &ocl.event);
             
             //ie jacobi
-            for(int t=0; t<20; t++)
+            for(int t=0; t<10; t++)
             {
                 ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, vxl_jac, 3, NULL, (size_t*)&vxl.ele.sz, NULL, 0, NULL, &ocl.event);
             }
         }
     }
+
 
 
     /*

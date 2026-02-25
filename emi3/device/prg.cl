@@ -14,14 +14,12 @@
 
 constant int3   off[6]  = {{-1,0,0},{+1,0,0},{0,-1,0},{0,+1,0},{0,0,-1},{0,0,+1}};
 
-constant float2 c1      = { 0.2f, 0.5f};    //conductivity diffusion
-constant float2 c2      = { 1.0f, 0.5f};    //conductivity pump
-constant float2 c3      = {+1.0f,-1.0f};    //direction/magnitude pump
-constant float2 c4      = {+1.0f,-1.0f};    //conductivity gate
 
-constant float cc[3][3] = {{1.0f,1.0f,1.0f},
-                           {1.0f,1.0f,0.0f},
-                           {1.0f,0.0f,1.0f}};
+//conductivity i -> j
+constant float2 cc[9] = {{1.0f,1.0f},{1.0f,0.0f},{0.0f,1.0f},
+                         {1.0f,0.0f},{1.0f,1.0f},{0.0f,0.0f},
+                         {0.0f,1.0f},{0.0f,0.0f},{1.0f,1.0f}};
+
 
 /*
  =============================
@@ -81,49 +79,50 @@ kernel void vxl_ini(const  struct vxl_obj    vxl,
     int3 vxl_pos = (int3){get_global_id(0),get_global_id(1),get_global_id(2)};
     int  vxl_idx = utl_idx(vxl_pos, vxl.ele.dim);
     
+    //tags
     gg[vxl_idx] = (vxl_pos.x >= vxl.ele.dim.x/2)*((vxl_pos.y >= vxl.ele.dim.y/2)+1);
     
     //init
-    uu[vxl_idx] = gg[vxl_idx] == 2; //convert_float2(vxl_pos.xy);
-
+    uu[vxl_idx] = vxl_pos.x == 0;
+    
     return;
 }
 
 
-//ee
-kernel void vxl_exp(const  struct vxl_obj    vxl,
-                    global int              *gg,
-                    global float2           *uu)
-{
-    int3  vxl_pos  = (int3){get_global_id(0), get_global_id(1), get_global_id(2)};
-    int   vxl_idx  = utl_idx(vxl_pos, vxl.ele.dim);
-    
-    float2 s = 0.0f;
-    
-    //stencil
-    for(int i=0; i<6; i++)
-    {
-        int3    adj_pos = vxl_pos + off[i];
-        int     adj_idx = utl_idx(adj_pos, vxl.ele.dim);
-        int     adj_bnd = utl_bnd(adj_pos, vxl.ele.dim);
-        
-        if(adj_bnd)
-        {
-            float2 dg = c3*(gg[adj_idx] - gg[vxl_idx]);     //geometry (size and direction)
-            float2 du = uu[adj_idx] - uu[vxl_idx];
-            
-            s +=  c1*du + c2*(du - dg);                     //diffusion, pump conductivity
-        }
-    }
-    
-    //constants
-    float2 alp = vxl.dt*vxl.rdx2;
-    
-    //ee
-    uu[vxl_idx] += alp*s;
-
-    return;
-}
+////ee
+//kernel void vxl_exp(const  struct vxl_obj    vxl,
+//                    global int              *gg,
+//                    global float2           *uu)
+//{
+//    int3  vxl_pos  = (int3){get_global_id(0), get_global_id(1), get_global_id(2)};
+//    int   vxl_idx  = utl_idx(vxl_pos, vxl.ele.dim);
+//    
+//    float2 s = 0.0f;
+//    
+//    //stencil
+//    for(int i=0; i<6; i++)
+//    {
+//        int3    adj_pos = vxl_pos + off[i];
+//        int     adj_idx = utl_idx(adj_pos, vxl.ele.dim);
+//        int     adj_bnd = utl_bnd(adj_pos, vxl.ele.dim);
+//        
+//        if(adj_bnd)
+//        {
+//            float2 dg = c3*(gg[adj_idx] - gg[vxl_idx]);     //geometry (size and direction)
+//            float2 du = uu[adj_idx] - uu[vxl_idx];
+//            
+//            s +=  c1*du + c2*(du - dg);                     //diffusion, pump conductivity
+//        }
+//    }
+//    
+//    //constants
+//    float2 alp = vxl.dt*vxl.rdx2;
+//    
+//    //ee
+//    uu[vxl_idx] += alp*s;
+//
+//    return;
+//}
 
 
 
@@ -148,9 +147,10 @@ kernel void vxl_jac(const  struct vxl_obj    vxl,
         
         if(adj_bnd)
         {
-            float c = cc[gg[vxl_idx]][gg[adj_idx]];   //conductivity per edge
-            d -= c;
-            s += c*uu[adj_idx];
+            int cst_idx = gg[vxl_idx]*3 + gg[adj_idx];      //lookup
+            float2 c1 = cc[cst_idx];                        //conductivity
+            d -= c1;
+            s += c1*uu[adj_idx];
         }
     }
     
