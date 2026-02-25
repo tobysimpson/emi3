@@ -31,7 +31,7 @@ void write_xmf(struct vxl_obj *vxl, int idx)
     fprintf(file1,"        <DataItem Format=\"XML\" Dimensions=\"3\">%e %e %e</DataItem>\n", vxl->dx, vxl->dx, vxl->dx);
     fprintf(file1,"      </Geometry>\n");
     fprintf(file1,"      <Attribute ItemType=\"Uniform\" Name=\"gg\" Center=\"Cell\" AttributeType=\"Scalar\">\n");
-    fprintf(file1,"        <DataItem Format=\"Binary\" Dimensions=\"%d %d %d\" Endian=\"Little\" Precision=\"4\" NumberType=\"Float\">gg.000.dat</DataItem>\n", vxl->ele.dim.z, vxl->ele.dim.y, vxl->ele.dim.x);
+    fprintf(file1,"        <DataItem Format=\"Binary\" Dimensions=\"%d %d %d\" Endian=\"Little\" Precision=\"4\" NumberType=\"Int\">gg.000.dat</DataItem>\n", vxl->ele.dim.z, vxl->ele.dim.y, vxl->ele.dim.x);
     fprintf(file1,"      </Attribute>\n");
     
 //    fprintf(file1,"      <Attribute ItemType=\"Uniform\" Name=\"uu\" Center=\"Cell\" AttributeType=\"Scalar\">\n");

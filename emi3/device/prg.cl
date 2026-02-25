@@ -71,13 +71,13 @@ int utl_bnd(int3 pos, int3 dim)
  */
 
 kernel void vxl_ini(const  struct vxl_obj    vxl,
-                    global float            *gg,
+                    global int              *gg,
                     global float2           *uu)
 {
     int3 vxl_pos = (int3){get_global_id(0),get_global_id(1),get_global_id(2)};
     int  vxl_idx = utl_idx(vxl_pos, vxl.ele.dim);
     
-    gg[vxl_idx] = vxl_pos.x >= vxl.ele.dim.x/2;
+    gg[vxl_idx] = (vxl_pos.x >= vxl.ele.dim.x/2)*((vxl_pos.y >= vxl.ele.dim.y/2)+1);
     
     //init
     uu[vxl_idx] = gg[vxl_idx]; //convert_float2(vxl_pos.xy);
@@ -172,11 +172,6 @@ kernel void vxl_jac(const  struct vxl_obj    vxl,
 
     return;
 }
-
-
-
-
-
 
 
 /*

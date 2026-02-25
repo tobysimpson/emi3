@@ -42,7 +42,7 @@ int main(int argc, const char * argv[])
     vxl_ini(&vxl);
     
     //memory
-    cl_mem gg = clCreateBuffer(ocl.context, CL_MEM_READ_WRITE, vxl.ele.tot*sizeof(cl_float),  NULL, &ocl.err);
+    cl_mem gg = clCreateBuffer(ocl.context, CL_MEM_READ_WRITE, vxl.ele.tot*sizeof(cl_int),    NULL, &ocl.err);
     cl_mem uu = clCreateBuffer(ocl.context, CL_MEM_READ_WRITE, vxl.ele.tot*sizeof(cl_float2), NULL, &ocl.err);
     cl_mem bb = clCreateBuffer(ocl.context, CL_MEM_READ_WRITE, vxl.ele.tot*sizeof(cl_float2), NULL, &ocl.err);
     
@@ -78,7 +78,7 @@ int main(int argc, const char * argv[])
     ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, vxl_ini, 3, NULL, (size_t*)&vxl.ele.sz, NULL, 0, NULL, &ocl.event);
     
     //write
-    file_write(&ocl, "gg", &gg, vxl.ele.tot, sizeof(cl_float), 0);
+    file_write(&ocl, "gg", &gg, vxl.ele.tot, sizeof(cl_int), 0);
     
     //frames
     for(int frm_idx=0; frm_idx<100; frm_idx++)
