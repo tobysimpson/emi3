@@ -52,7 +52,7 @@ int main(int argc, const char * argv[])
     
     //kernels
     cl_kernel vxl_ini = clCreateKernel(ocl.program, "vxl_ini", &ocl.err);
-    cl_kernel vxl_exp = clCreateKernel(ocl.program, "vxl_exp", &ocl.err);
+    cl_kernel vxl_rhs = clCreateKernel(ocl.program, "vxl_rhs", &ocl.err);
     cl_kernel vxl_jac = clCreateKernel(ocl.program, "vxl_jac", &ocl.err);
     
     //args
@@ -60,9 +60,10 @@ int main(int argc, const char * argv[])
     ocl.err = clSetKernelArg(vxl_ini, 1, sizeof(cl_mem),           (void*)&gg);
     ocl.err = clSetKernelArg(vxl_ini, 2, sizeof(cl_mem),           (void*)&uu);
     
-    ocl.err = clSetKernelArg(vxl_exp, 0, sizeof(struct vxl_obj),   (void*)&vxl);
-    ocl.err = clSetKernelArg(vxl_exp, 1, sizeof(cl_mem),           (void*)&gg);
-    ocl.err = clSetKernelArg(vxl_exp, 2, sizeof(cl_mem),           (void*)&uu);
+    ocl.err = clSetKernelArg(vxl_rhs, 0, sizeof(struct vxl_obj),   (void*)&vxl);
+    ocl.err = clSetKernelArg(vxl_rhs, 1, sizeof(cl_mem),           (void*)&gg);
+    ocl.err = clSetKernelArg(vxl_rhs, 2, sizeof(cl_mem),           (void*)&uu);
+    ocl.err = clSetKernelArg(vxl_rhs, 3, sizeof(cl_mem),           (void*)&bb);
     
     ocl.err = clSetKernelArg(vxl_jac, 0, sizeof(struct vxl_obj),   (void*)&vxl);
     ocl.err = clSetKernelArg(vxl_jac, 1, sizeof(cl_mem),           (void*)&gg);
@@ -93,7 +94,8 @@ int main(int argc, const char * argv[])
 //            ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, vxl_exp, 3, NULL, (size_t*)&vxl.ele.sz, NULL, 0, NULL, &ocl.event);
             
             //ie rhs
-            ocl.err = clEnqueueCopyBuffer(ocl.command_queue, uu, bb, 0, 0, vxl.ele.tot*sizeof(cl_float2), 0, NULL, &ocl.event);
+//            ocl.err = clEnqueueCopyBuffer(ocl.command_queue, uu, bb, 0, 0, vxl.ele.tot*sizeof(cl_float2), 0, NULL, &ocl.event);
+            ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, vxl_rhs, 3, NULL, (size_t*)&vxl.ele.sz, NULL, 0, NULL, &ocl.event);
             
             //ie jacobi
             for(int t=0; t<10; t++)
@@ -102,7 +104,6 @@ int main(int argc, const char * argv[])
             }
         }
     }
-
 
 
     /*
@@ -118,7 +119,7 @@ int main(int argc, const char * argv[])
 
     //kernels
     ocl.err = clReleaseKernel(vxl_ini);
-    ocl.err = clReleaseKernel(vxl_exp);
+    ocl.err = clReleaseKernel(vxl_rhs);
     ocl.err = clReleaseKernel(vxl_jac);
     
     //final

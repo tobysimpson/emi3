@@ -12,13 +12,23 @@
  =============================
  */
 
-constant int3   off[6]  = {{-1,0,0},{+1,0,0},{0,-1,0},{0,+1,0},{0,0,-1},{0,0,+1}};
+//stencil
+constant int3   off[6]  = {{-1,+0,+0},{+1,+0,+0},{+0,-1,+0},{+0,+1,+0},{+0,+0,-1},{+0,+0,+1}};
 
+//passive conductivity
+constant float2 cc1[9] = {{1.0f,1.0f},{1.0f,0.0f},{0.0f,1.0f},
+                          {1.0f,0.0f},{1.0f,1.0f},{0.0f,0.0f},
+                          {0.0f,1.0f},{0.0f,0.0f},{1.0f,1.0f}};
 
-//conductivity i -> j
-constant float2 cc[9] = {{1.0f,1.0f},{1.0f,0.0f},{0.0f,1.0f},
-                         {1.0f,0.0f},{1.0f,1.0f},{0.0f,0.0f},
-                         {0.0f,1.0f},{0.0f,0.0f},{1.0f,1.0f}};
+//pump conductivity
+constant float2 pp1[9] = {{0.0f,0.0f},{0.0f,0.0f},{0.0f,0.0f},
+                          {0.0f,0.0f},{0.0f,0.0f},{1.0f,0.0f},
+                          {0.0f,0.0f},{1.0f,0.0f},{0.0f,0.0f}};
+
+//pump level
+constant float2 pp2[9] = {{+0.0f,+0.0f},{+0.0f,+0.0f},{+0.0f,+0.0f},
+                          {+0.0f,+0.0f},{+0.0f,+0.0f},{+1.0f,+0.0f},
+                          {+0.0f,+0.0f},{-1.0f,+0.0f},{+0.0f,+0.0f}};
 
 
 /*
@@ -35,7 +45,6 @@ struct dim_obj
 };
 
 
-//object
 struct vxl_obj
 {
     float dt;
@@ -44,8 +53,10 @@ struct vxl_obj
     struct dim_obj ele;
     struct dim_obj vtx;
 
+    float rdx;
     float rdx2;
 };
+
 
 
 /*
@@ -89,40 +100,45 @@ kernel void vxl_ini(const  struct vxl_obj    vxl,
 }
 
 
-////ee
-//kernel void vxl_exp(const  struct vxl_obj    vxl,
-//                    global int              *gg,
-//                    global float2           *uu)
-//{
-//    int3  vxl_pos  = (int3){get_global_id(0), get_global_id(1), get_global_id(2)};
-//    int   vxl_idx  = utl_idx(vxl_pos, vxl.ele.dim);
-//    
-//    float2 s = 0.0f;
-//    
-//    //stencil
-//    for(int i=0; i<6; i++)
-//    {
-//        int3    adj_pos = vxl_pos + off[i];
-//        int     adj_idx = utl_idx(adj_pos, vxl.ele.dim);
-//        int     adj_bnd = utl_bnd(adj_pos, vxl.ele.dim);
-//        
-//        if(adj_bnd)
-//        {
-//            float2 dg = c3*(gg[adj_idx] - gg[vxl_idx]);     //geometry (size and direction)
-//            float2 du = uu[adj_idx] - uu[vxl_idx];
-//            
-//            s +=  c1*du + c2*(du - dg);                     //diffusion, pump conductivity
-//        }
-//    }
-//    
-//    //constants
-//    float2 alp = vxl.dt*vxl.rdx2;
-//    
-//    //ee
-//    uu[vxl_idx] += alp*s;
-//
-//    return;
-//}
+
+
+//ie rhs
+kernel void vxl_rhs(const  struct vxl_obj    vxl,
+                    global int              *gg,
+                    global float2           *uu,
+                    global float2           *bb)
+{
+    int3  vxl_pos  = (int3){get_global_id(0), get_global_id(1), get_global_id(2)};
+    int   vxl_idx  = utl_idx(vxl_pos, vxl.ele.dim);
+    
+    float2 s = 0.0f;
+    
+    //stencil
+    for(int i=0; i<6; i++)
+    {
+        int3    adj_pos = vxl_pos + off[i];
+        int     adj_idx = utl_idx(adj_pos, vxl.ele.dim);
+        int     adj_bnd = utl_bnd(adj_pos, vxl.ele.dim);
+        
+        if(adj_bnd)
+        {
+            int cnd_idx = gg[vxl_idx]*3 + gg[adj_idx];      //lookup
+            
+            float2 p1 = pp1[cnd_idx];                       //pump cond
+            float2 p2 = pp2[cnd_idx];                       //pump level
+            
+            s += p1*p2;
+        }
+    }
+    
+    //constants
+    float2 alp = vxl.dt*vxl.rdx;
+    
+    //write
+    bb[vxl_idx] = uu[vxl_idx] + alp*s;
+
+    return;
+}
 
 
 
@@ -147,10 +163,13 @@ kernel void vxl_jac(const  struct vxl_obj    vxl,
         
         if(adj_bnd)
         {
-            int cst_idx = gg[vxl_idx]*3 + gg[adj_idx];      //lookup
-            float2 c1 = cc[cst_idx];                        //conductivity
-            d -= c1;
-            s += c1*uu[adj_idx];
+            int cnd_idx = gg[vxl_idx]*3 + gg[adj_idx];      //lookup
+            
+            float2 c1 = cc1[cnd_idx];                        //passive conductivity
+            float2 p1 = cc1[cnd_idx];                        //pump conductivity
+            
+            d -= (c1+p1);
+            s += (c1+p1)*uu[adj_idx];
         }
     }
     
@@ -262,6 +281,44 @@ kernel void vxl_jac(const  struct vxl_obj    vxl,
      return;
  }
 
+ 
+ 
+ //ee
+ kernel void vxl_exp(const  struct vxl_obj    vxl,
+                     global int              *gg,
+                     global float2           *uu)
+ {
+     int3  vxl_pos  = (int3){get_global_id(0), get_global_id(1), get_global_id(2)};
+     int   vxl_idx  = utl_idx(vxl_pos, vxl.ele.dim);
+ 
+     float2 s = 0.0f;
+ 
+     //stencil
+     for(int i=0; i<6; i++)
+     {
+         int3    adj_pos = vxl_pos + off[i];
+         int     adj_idx = utl_idx(adj_pos, vxl.ele.dim);
+         int     adj_bnd = utl_bnd(adj_pos, vxl.ele.dim);
+ 
+         if(adj_bnd)
+         {
+             float2 dg = c3*(gg[adj_idx] - gg[vxl_idx]);     //geometry (size and direction)
+             float2 du = uu[adj_idx] - uu[vxl_idx];
+ 
+             s +=  c1*du + c2*(du - dg);                     //diffusion, pump conductivity
+         }
+     }
+ 
+     //constants
+     float2 alp = vxl.dt*vxl.rdx2;
+ 
+     //ee
+     uu[vxl_idx] += alp*s;
+ 
+     return;
+ }
+
+ 
  
  */
 

@@ -25,6 +25,7 @@ struct vxl_obj
     struct dim_obj ele;
     struct dim_obj vtx;
 
+    float rdx;
     float rdx2;
 };
 
@@ -51,7 +52,8 @@ void vxl_ini(struct vxl_obj *vxl)
     dim_ini(&vxl->ele);
     dim_ini(&vxl->vtx);
     
-    vxl->rdx2 = pow(vxl->dx, -2);
+    vxl->rdx  = powf(vxl->dx, -1);
+    vxl->rdx2 = powf(vxl->dx, -2);
 
     printf("dx %f dt %f\n", vxl->dx, vxl->dt);
     printf("ele [%d %d %d] %d\n", vxl->ele.dim.x, vxl->ele.dim.y, vxl->ele.dim.z, vxl->ele.tot);
