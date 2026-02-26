@@ -94,7 +94,7 @@ kernel void vxl_ini(const  struct vxl_obj    vxl,
     gg[vxl_idx] = (vxl_pos.x >= vxl.ele.dim.x/2)*((vxl_pos.y >= vxl.ele.dim.y/2)+1);
     
     //init
-//    uu[vxl_idx] = vxl_pos.x == 0;
+//    uu[vxl_idx] = vxl_pos.z == 0;
     
     return;
 }
@@ -132,7 +132,7 @@ kernel void vxl_rhs(const  struct vxl_obj    vxl,
     }
     
     //constants
-    float2 alp = vxl.dt*vxl.rdx;
+    float2 alp = vxl.dt;    //no dx pot diff. not grad
     
     //write
     bb[vxl_idx] = uu[vxl_idx] + alp*s;

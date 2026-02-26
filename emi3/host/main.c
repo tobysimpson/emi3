@@ -35,9 +35,9 @@ int main(int argc, const char * argv[])
     ocl_ini(&ocl);
     
     struct vxl_obj vxl;
-    vxl.dt = 0.1f;
+    vxl.dt = 1.0f;
     vxl.dx = 1.0f;
-    vxl.ele.dim = (cl_int3){8,8,8};
+    vxl.ele.dim = (cl_int3){20,20,20};
 //    vxl.ne = (cl_int3){67,14,14};
     vxl_ini(&vxl);
     
@@ -77,7 +77,6 @@ int main(int argc, const char * argv[])
     file_write(&ocl, "gg", &gg, vxl.ele.tot, sizeof(cl_int), 0);
     
     
-
     //frames
     for(int frm_idx=0; frm_idx<100; frm_idx++)
     {
