@@ -13,7 +13,7 @@
 #include "ocl.h"
 #include "vxl.h"
 #include "io.h"
-#include "xdmf.h"
+#include "xmf.h"
 
 
 //voxel diffusion/pump
@@ -36,7 +36,7 @@ int main(int argc, const char * argv[])
     
     struct vxl_obj vxl;
     vxl.dt = 1.0f;
-    vxl.dx = 1.0f;
+    vxl.dx = 0.05f;
     vxl.ele.dim = (cl_int3){20,20,20};
 //    vxl.ne = (cl_int3){67,14,14};
     vxl_ini(&vxl);
