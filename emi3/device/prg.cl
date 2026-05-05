@@ -15,24 +15,22 @@
 //stencil
 constant int3   off[6]  = {{-1,+0,+0},{+1,+0,+0},{+0,-1,+0},{+0,+1,+0},{+0,+0,-1},{+0,+0,+1}};
 
-//passive conductivity
-constant float2 cc1[9] = {{1.0f,1.0f},{1.0f,0.0f},{1.0f,0.0f},
-                          {1.0f,0.0f},{1.0f,1.0f},{0.0f,0.0f},
-                          {1.0f,0.0f},{0.0f,0.0f},{1.0f,1.0f}};
+//diffusion rate
+constant float2 cc1[4] = {{0.0f,0.0f},{0.0f,0.0f},
+                          {0.0f,0.0f},{0.0f,0.0f}};
 
-//pump conductivity
-constant float2 pp1[9] = {{0.0f,0.0f},{0.0f,0.0f},{0.0f,0.0f},
-                          {0.0f,0.0f},{0.0f,0.0f},{1.0f,1.0f},
-                          {0.0f,0.0f},{1.0f,1.0f},{0.0f,0.0f}};
+//pump rate
+constant float2 pp1[4] = {{0.0f,0.0f},{0.3f,0.2f},
+                          {0.3f,0.2f},{0.0f,0.0f}};
 
-//pump level
-constant float2 pp2[9] = {{+0.0f,+0.0f},{+0.0f,+0.0f},{+0.0f,+0.0f},
-                          {+0.0f,+0.0f},{+0.0f,+0.0f},{+1.0f,-1.0f},
-                          {+0.0f,+0.0f},{-1.0f,+1.0f},{+0.0f,+0.0f}};
+//pump equilibrium
+constant float2 ee1[4] = {{+0.0f,+0.0f},{+1.0f,-1.0f},
+                          {-1.0f,+1.0f},{+0.0f,+0.0f}};
 
-constant float2 bb1[9] = {{0.0f,0.1f},{1.0f,1.1f},{2.0f,2.1f},
-                          {3.0f,3.1f},{4.0f,4.1f},{5.0f,5.1f},
-                          {6.0f,6.1f},{7.0f,7.1f},{8.0f,8.1f}};
+//gate rate
+constant float2 gg1[4] = {{0.0f,0.0f},{3.0f,1.0f},
+                          {3.0f,1.0f},{0.0f,0.0f}};
+
 
 
 
@@ -90,6 +88,18 @@ int utl_nxn(int i, int j, int n)
 
 /*
  =============================
+ membrane
+ =============================
+ */
+
+//logistic shift/scale
+float fn_g(float x, float a, float b)
+{
+    return pow(1e0f+exp((a-x)/b),-1e0f);
+}
+
+/*
+ =============================
  kernel
  =============================
  */
@@ -101,8 +111,8 @@ kernel void vxl_ini(const  struct vxl_obj    vxl,
     int3 vxl_pos = (int3){get_global_id(0),get_global_id(1),get_global_id(2)};
     int  vxl_idx = utl_idx(vxl_pos, vxl.ele.dim);
     
-    //tags
-    gg[vxl_idx] = (vxl_pos.x >= vxl.ele.dim.x/2)*((vxl_pos.y >= vxl.ele.dim.y/2)+1);
+    //geom
+    gg[vxl_idx] = (vxl_pos.x >= vxl.ele.dim.x/2);
     
     //init
 //    uu[vxl_idx] = vxl_pos.z == 0;
@@ -128,7 +138,9 @@ kernel void vxl_exp(const  struct vxl_obj    vxl,
 
 //    printf("%d [%v3d]\n", vxl_idx, vxl_pos);
     
-    float2 s = 0.0f;
+    float2 dp = 0.0f;
+    float2 dg = 0.0f;
+    float2 dc = 0.0f;
     
     //stencil
     for(int j=0; j<6; j++)
@@ -137,29 +149,37 @@ kernel void vxl_exp(const  struct vxl_obj    vxl,
         int     adj_idx = utl_idx(adj_pos, vxl.ele.dim);
         int     adj_bnd = utl_bnd(adj_pos, vxl.ele.dim);
         
-        
-        
+        //zero neumann
         if(adj_bnd)
         {
-            int edg_typ = utl_nxn(gg[vxl_idx], gg[adj_idx], 3);
+            //edge lookup 2x2
+            int edg_typ = utl_nxn(gg[vxl_idx], gg[adj_idx], 2);
             
-            float2 b = bb1[edg_typ];
+            //constants
+            float2 c = cc1[edg_typ];
+            float2 p = pp1[edg_typ];
+            float2 e = ee1[edg_typ];
+            float2 g = gg1[edg_typ];
+            
+            //grad
+            float2 du = uu[adj_idx] - uu[vxl_idx];
+            
+            //voltage
+            float v = du.x + du.y;
+            
+            //pump
+            dc += c*du;
+            dp += p*(du - e);
+//            dg += g*fn_g(v,0.2f,0.02f)*du;
             
 //            printf("%d [%v3d] %d [%v3d] %d %d %f %d [%f,%f]\n", vxl_idx, vxl_pos, adj_idx, adj_pos, gg[vxl_idx], gg[adj_idx], aa[gg[vxl_idx]][gg[adj_idx]], edg_typ, b.x, b.y);
-//            printf("%d [%v3d] %d [%v3d] (%d,%d) %d %f %f\n", vxl_idx, vxl_pos, adj_idx, adj_pos, gg[vxl_idx], gg[adj_idx], edg_typ, bb[edg_typ].x, b.x);
-                printf("%d %f\n", edg_typ, b.y);
-            
-//            float2 dg = c3*(gg[adj_idx] - gg[vxl_idx]);     //geometry (size and direction)
-//            float2 du = uu[adj_idx] - uu[vxl_idx];
-//
-//            s +=  c1*du + c2*(du - dg);                     //diffusion, pump conductivity
-            
-            s += b.x;
+//            printf("%d [%v3d] %d [%v3d] (%d,%d) %d %f\n", vxl_idx, vxl_pos, adj_idx, adj_pos, gg[vxl_idx], gg[adj_idx], edg_typ, b.y);
+
         }
     }
 
     //ee
-    uu[vxl_idx] += s;
+    uu[vxl_idx] += vxl.dt*(vxl.rdx2*dc + dp + dg);
 
     return;
 }

@@ -35,9 +35,9 @@ int main(int argc, const char * argv[])
     ocl_ini(&ocl);
     
     struct vxl_obj vxl;
-    vxl.dt = 1.0f;
-    vxl.dx = 0.05f;
-    vxl.ele.dim = (cl_int3){2,2,2};
+    vxl.dt = 1e-1f;
+    vxl.dx = 1e-0f;
+    vxl.ele.dim = (cl_int3){2,1,1};
 //    vxl.ne = (cl_int3){67,14,14};
     vxl_ini(&vxl);
     
@@ -86,7 +86,7 @@ int main(int argc, const char * argv[])
     
     
     //frames
-    for(int frm_idx=0; frm_idx<1; frm_idx++)
+    for(int frm_idx=0; frm_idx<100; frm_idx++)
     {
         printf("frm %02d\n", frm_idx);
         
