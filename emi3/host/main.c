@@ -22,7 +22,7 @@ int main(int argc, const char * argv[])
     printf("hello\n");
     
     //make dir
-    mkdir("/Users/toby/Downloads/vxl", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+    mkdir(ROOT_WRITE, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
     
     /*
      =============================

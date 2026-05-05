@@ -11,8 +11,6 @@
 #define ROOT_READ   "/Users/toby/Downloads/tet"
 #define ROOT_WRITE  "/Users/toby/Downloads/vxl"
 
-
-
 //file length in bytes
 size_t file_size(char* file_name)
 {
