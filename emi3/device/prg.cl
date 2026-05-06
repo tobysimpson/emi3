@@ -188,7 +188,7 @@ kernel void vxl_exp(const  struct vxl_obj    vxl,
             //voltage
             float v = du.x + du.y;
             
-            if(vxl_idx==0)
+            if(vxl_idx==0&&adj_idx==1)
             {
                 printf("%+f %+f %+f %+f %+f\n",v,du.x,du.y,u.x,u.y);
             }
