@@ -113,22 +113,22 @@ kernel void vxl_ini(const  struct vxl_obj   vxl,
     g = (vxl_pos.x >= vxl.ele.dim.x/2);
     
     //init
-    u.x = g - 0.5f;
-    u.y = 0.5f - g;
+    u.x = 0.5f - g;
+    u.y = g - 0.5f;
     
     //stim
     int3 s0 = {0,0,0};
     int3 s1 = {1,0,0};
-    float2 s = {+0.1f,-0.1f};
+
 
     if(all(vxl_pos==s0))
     {
-        u += s;
+        u.x = +0.3f;
     }
     
     if(all(vxl_pos==s1))
     {
-        u += s;
+        u.x = -0.3f;
     }
     
     //write
@@ -160,6 +160,9 @@ kernel void vxl_exp(const  struct vxl_obj    vxl,
     float2 dg = 0.0f;
     float2 dc = 0.0f;
     
+    //read
+    float2 u = uu[vxl_idx];
+    
     //stencil
     for(int j=0; j<6; j++)
     {
@@ -180,14 +183,14 @@ kernel void vxl_exp(const  struct vxl_obj    vxl,
             float2 g = gg1[edg_typ];
             
             //grad
-            float2 du = uu[adj_idx] - uu[vxl_idx];
+            float2 du = uu[adj_idx] - u;
             
             //voltage
             float v = du.x + du.y;
             
             if(vxl_idx==0)
             {
-                printf("%+f %+f %+f\n",du.x,du.y,v);
+                printf("%+f %+f %+f %+f %+f\n",v,du.x,du.y,u.x,u.y);
             }
             
             //flux
@@ -196,9 +199,6 @@ kernel void vxl_exp(const  struct vxl_obj    vxl,
             dg += g*fn_g(v)*du;
         }
     }
-    
-
-    
     
     //ee
     uu[vxl_idx] += vxl.dt*(dc + dp + dg);
