@@ -24,15 +24,12 @@ constant float2 pp1[4] = {{0.0f,0.0f},{0.3f,0.2f},
                           {0.3f,0.2f},{0.0f,0.0f}};
 
 //pump equilibrium
-constant float2 ee1[4] = {{+0.0f,+0.0f},{+1.0f,-1.0f},
-                          {-1.0f,+1.0f},{+0.0f,+0.0f}};
+constant float2 ee1[4] = {{+0.0f,+0.0f},{-1.0f,+1.0f},
+                          {+1.0f,-1.0f},{+0.0f,+0.0f}};
 
 //gate rate
 constant float2 gg1[4] = {{0.0f,0.0f},{3.0f,1.0f},
                           {3.0f,1.0f},{0.0f,0.0f}};
-
-
-
 
 /*
  =============================
@@ -59,8 +56,6 @@ struct vxl_obj
     float rdx;
     float rdx2;
 };
-
-
 
 /*
  =============================
@@ -104,7 +99,7 @@ float fn_g(float v)
  =============================
  */
 
-kernel void vxl_ini(const  struct vxl_obj    vxl,
+kernel void vxl_ini(const  struct vxl_obj   vxl,
                     global int              *gg,
                     global float2           *uu)
 {
@@ -122,12 +117,23 @@ kernel void vxl_ini(const  struct vxl_obj    vxl,
     u.y = 0.5f - g;
     
     //stim
-    u *= (vxl_pos.z<(vxl.ele.dim.z-1));
+    int3 s0 = {0,0,0};
+    int3 s1 = {1,0,0};
+    float2 s = {+0.1f,-0.1f};
+
+    if(all(vxl_pos==s0))
+    {
+        u += s;
+    }
+    
+    if(all(vxl_pos==s1))
+    {
+        u += s;
+    }
     
     //write
     gg[vxl_idx] = g;
     uu[vxl_idx] = u;
-    
     
     return;
 }
@@ -179,20 +185,20 @@ kernel void vxl_exp(const  struct vxl_obj    vxl,
             //voltage
             float v = du.x + du.y;
             
-//            if(vxl_idx==0)
-//            {
-//                printf("%f\n",du.x);
-//            }
+            if(vxl_idx==0)
+            {
+                printf("%+f %+f %+f\n",du.x,du.y,v);
+            }
             
+            //flux
             dc += c*du;
             dp += p*(du - e);
             dg += g*fn_g(v)*du;
-            
-//            printf("%d [%v3d] %d [%v3d] %d %d %f %d [%f,%f]\n", vxl_idx, vxl_pos, adj_idx, adj_pos, gg[vxl_idx], gg[adj_idx], aa[gg[vxl_idx]][gg[adj_idx]], edg_typ, b.x, b.y);
-//            printf("%d [%v3d] %d [%v3d] (%d,%d) %d %f\n", vxl_idx, vxl_pos, adj_idx, adj_pos, gg[vxl_idx], gg[adj_idx], edg_typ, b.y);
-
         }
     }
+    
+
+    
     
     //ee
     uu[vxl_idx] += vxl.dt*(dc + dp + dg);

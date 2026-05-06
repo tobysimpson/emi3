@@ -15,8 +15,7 @@
 #include "io.h"
 #include "xmf.h"
 
-
-//voxel diffusion/pump
+//voxel ap
 int main(int argc, const char * argv[])
 {
     printf("hello\n");
@@ -37,7 +36,7 @@ int main(int argc, const char * argv[])
     struct vxl_obj vxl;
     vxl.dt = 1e-1f;
     vxl.dx = 1e-0f;
-    vxl.ele.dim = (cl_int3){2,1,4};
+    vxl.ele.dim = (cl_int3){2,1,8};
 //    vxl.ne = (cl_int3){67,14,14};
     vxl_ini(&vxl);
     
@@ -98,6 +97,7 @@ int main(int argc, const char * argv[])
         for(int t=0; t<1; t++)
         {
             //ee
+//            ocl.err = clSetKernelArg(vxl_exp, 4, sizeof(int), (void*)&frm_idx);
             ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, vxl_exp, 3, NULL, (size_t*)&vxl.ele.sz, NULL, 0, NULL, &ocl.event);
             
             //ie rhs
@@ -119,6 +119,10 @@ int main(int argc, const char * argv[])
      =============================
      */
     
+    //queue
+    ocl.err = clFlush(ocl.command_queue);
+    ocl.err = clFinish(ocl.command_queue);
+    
     //memory
     ocl.err = clReleaseMemObject(gg);
     ocl.err = clReleaseMemObject(uu);
@@ -130,6 +134,7 @@ int main(int argc, const char * argv[])
     ocl.err = clReleaseKernel(vxl_rhs);
     ocl.err = clReleaseKernel(vxl_jac);
     
+
     //final
     ocl_fin(&ocl);
     
