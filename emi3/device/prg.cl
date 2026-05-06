@@ -16,8 +16,8 @@
 constant int3   off[6]  = {{-1,+0,+0},{+1,+0,+0},{+0,-1,+0},{+0,+1,+0},{+0,+0,-1},{+0,+0,+1}};
 
 //diffusion rate
-constant float2 cc1[4] = {{0.0f,0.0f},{0.0f,0.0f},
-                          {0.0f,0.0f},{0.0f,0.0f}};
+constant float2 cc1[4] = {{1.0f,1.0f},{0.0f,0.0f},
+                          {0.0f,0.0f},{1.0f,1.0f}};
 
 //pump rate
 constant float2 pp1[4] = {{0.0f,0.0f},{0.3f,0.2f},
@@ -92,10 +92,10 @@ int utl_nxn(int i, int j, int n)
  =============================
  */
 
-//logistic shift/scale
-float fn_g(float x, float a, float b)
+//gate logistic shifted/scaled
+float fn_g(float v)
 {
-    return pow(1e0f+exp((a-x)/b),-1e0f);
+    return pow(1e0f+exp((0.2f-v)/0.02f),-1e0f);
 }
 
 /*
@@ -111,11 +111,23 @@ kernel void vxl_ini(const  struct vxl_obj    vxl,
     int3 vxl_pos = (int3){get_global_id(0),get_global_id(1),get_global_id(2)};
     int  vxl_idx = utl_idx(vxl_pos, vxl.ele.dim);
     
+    int     g = 0;
+    float2  u = 0.0f;
+    
     //geom
-    gg[vxl_idx] = (vxl_pos.x >= vxl.ele.dim.x/2);
+    g = (vxl_pos.x >= vxl.ele.dim.x/2);
     
     //init
-//    uu[vxl_idx] = vxl_pos.z == 0;
+    u.x = g - 0.5f;
+    u.y = 0.5f - g;
+    
+    //stim
+    u *= (vxl_pos.z<(vxl.ele.dim.z-1));
+    
+    //write
+    gg[vxl_idx] = g;
+    uu[vxl_idx] = u;
+    
     
     return;
 }
@@ -167,19 +179,23 @@ kernel void vxl_exp(const  struct vxl_obj    vxl,
             //voltage
             float v = du.x + du.y;
             
-            //pump
+//            if(vxl_idx==0)
+//            {
+//                printf("%f\n",du.x);
+//            }
+            
             dc += c*du;
             dp += p*(du - e);
-//            dg += g*fn_g(v,0.2f,0.02f)*du;
+            dg += g*fn_g(v)*du;
             
 //            printf("%d [%v3d] %d [%v3d] %d %d %f %d [%f,%f]\n", vxl_idx, vxl_pos, adj_idx, adj_pos, gg[vxl_idx], gg[adj_idx], aa[gg[vxl_idx]][gg[adj_idx]], edg_typ, b.x, b.y);
 //            printf("%d [%v3d] %d [%v3d] (%d,%d) %d %f\n", vxl_idx, vxl_pos, adj_idx, adj_pos, gg[vxl_idx], gg[adj_idx], edg_typ, b.y);
 
         }
     }
-
+    
     //ee
-    uu[vxl_idx] += vxl.dt*(vxl.rdx2*dc + dp + dg);
+    uu[vxl_idx] += vxl.dt*(dc + dp + dg);
 
     return;
 }

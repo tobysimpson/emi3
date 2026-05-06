@@ -37,7 +37,7 @@ int main(int argc, const char * argv[])
     struct vxl_obj vxl;
     vxl.dt = 1e-1f;
     vxl.dx = 1e-0f;
-    vxl.ele.dim = (cl_int3){2,1,1};
+    vxl.ele.dim = (cl_int3){2,1,4};
 //    vxl.ne = (cl_int3){67,14,14};
     vxl_ini(&vxl);
     
@@ -88,7 +88,7 @@ int main(int argc, const char * argv[])
     //frames
     for(int frm_idx=0; frm_idx<100; frm_idx++)
     {
-        printf("frm %02d\n", frm_idx);
+//        printf("frm %02d\n", frm_idx);
         
         //write
         write_xmf(&vxl, frm_idx);
