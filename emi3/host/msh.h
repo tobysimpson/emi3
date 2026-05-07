@@ -1,12 +1,12 @@
 //
-//  vxl.h
+//  msh.h
 //  emi3
 //
 //  Created by Toby Simpson on 12.02.2026.
 //
 
-#ifndef vxl_h
-#define vxl_h
+#ifndef msh_h
+#define msh_h
 
 
 struct dim_obj
@@ -63,4 +63,4 @@ void vxl_ini(struct msh_obj *vxl)
 }
 
 
-#endif /* vxl_h */
+#endif /* msh_h */

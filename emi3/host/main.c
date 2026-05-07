@@ -11,7 +11,7 @@
 #include <sys/stat.h>
 
 #include "ocl.h"
-#include "vxl.h"
+#include "msh.h"
 #include "io.h"
 #include "xmf.h"
 
@@ -33,9 +33,9 @@ int main(int argc, const char * argv[])
     struct ocl_obj ocl;
     ocl_ini(&ocl);
     
-    struct vxl_obj vxl;
-    vxl.dt = 1e-1f;
-    vxl.dx = 5e-1f;
+    struct msh_obj vxl;
+    vxl.dt = 5e-2f;
+    vxl.dx = 1e-0f;
     vxl.ele.dim = (cl_int3){2,1,16};
 //    vxl.ne = (cl_int3){67,14,14};
     vxl_ini(&vxl);
@@ -56,21 +56,21 @@ int main(int argc, const char * argv[])
     cl_kernel vxl_jac = clCreateKernel(ocl.program, "vxl_jac", &ocl.err);
     
     //args
-    ocl.err = clSetKernelArg(vxl_ini, 0, sizeof(struct vxl_obj),   (void*)&vxl);
+    ocl.err = clSetKernelArg(vxl_ini, 0, sizeof(struct msh_obj),   (void*)&vxl);
     ocl.err = clSetKernelArg(vxl_ini, 1, sizeof(cl_mem),           (void*)&gg);
     ocl.err = clSetKernelArg(vxl_ini, 2, sizeof(cl_mem),           (void*)&uu);
     
-    ocl.err = clSetKernelArg(vxl_exp, 0, sizeof(struct vxl_obj),   (void*)&vxl);
+    ocl.err = clSetKernelArg(vxl_exp, 0, sizeof(struct msh_obj),   (void*)&vxl);
     ocl.err = clSetKernelArg(vxl_exp, 1, sizeof(cl_mem),           (void*)&gg);
     ocl.err = clSetKernelArg(vxl_exp, 2, sizeof(cl_mem),           (void*)&uu);
     ocl.err = clSetKernelArg(vxl_exp, 3, sizeof(cl_mem),           (void*)&bb);
     
-    ocl.err = clSetKernelArg(vxl_rhs, 0, sizeof(struct vxl_obj),   (void*)&vxl);
+    ocl.err = clSetKernelArg(vxl_rhs, 0, sizeof(struct msh_obj),   (void*)&vxl);
     ocl.err = clSetKernelArg(vxl_rhs, 1, sizeof(cl_mem),           (void*)&gg);
     ocl.err = clSetKernelArg(vxl_rhs, 2, sizeof(cl_mem),           (void*)&uu);
     ocl.err = clSetKernelArg(vxl_rhs, 3, sizeof(cl_mem),           (void*)&bb);
     
-    ocl.err = clSetKernelArg(vxl_jac, 0, sizeof(struct vxl_obj),   (void*)&vxl);
+    ocl.err = clSetKernelArg(vxl_jac, 0, sizeof(struct msh_obj),   (void*)&vxl);
     ocl.err = clSetKernelArg(vxl_jac, 1, sizeof(cl_mem),           (void*)&gg);
     ocl.err = clSetKernelArg(vxl_jac, 2, sizeof(cl_mem),           (void*)&uu);
     ocl.err = clSetKernelArg(vxl_jac, 3, sizeof(cl_mem),           (void*)&bb);
@@ -84,7 +84,7 @@ int main(int argc, const char * argv[])
     file_write(&ocl, "gg", &gg, vxl.ele.tot, sizeof(cl_int), 0);
     
     //frames
-    for(int frm_idx=0; frm_idx<200; frm_idx++)
+    for(int frm_idx=0; frm_idx<400; frm_idx++)
     {
 //        printf("frm %02d\n", frm_idx);
         

@@ -10,7 +10,7 @@
 
 
 //write xdmf
-void write_xmf(struct vxl_obj *vxl, int idx)
+void write_xmf(struct msh_obj *vxl, int idx)
 {
     FILE* file1;
     char file1_name[250];

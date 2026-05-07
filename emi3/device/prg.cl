@@ -45,7 +45,7 @@ struct dim_obj
 };
 
 
-struct vxl_obj
+struct msh_obj
 {
     float dt;
     float dx;
@@ -99,18 +99,18 @@ float fn_g(float v)
  =============================
  */
 
-kernel void vxl_ini(const  struct vxl_obj   vxl,
+kernel void vxl_ini(const  struct msh_obj   msh,
                     global int              *gg,
                     global float2           *uu)
 {
     int3 vxl_pos = (int3){get_global_id(0),get_global_id(1),get_global_id(2)};
-    int  vxl_idx = utl_idx(vxl_pos, vxl.ele.dim);
+    int  vxl_idx = utl_idx(vxl_pos, msh.ele.dim);
     
     int     g = 0;
     float2  u = 0.0f;
     
     //geom
-    g = (vxl_pos.x >= vxl.ele.dim.x/2);
+    g = (vxl_pos.x >= msh.ele.dim.x/2);
     
     //init
     u.x = 0.5f - g;
@@ -146,13 +146,13 @@ kernel void vxl_ini(const  struct vxl_obj   vxl,
  */
 
 //ee
-kernel void vxl_exp(const  struct vxl_obj    vxl,
+kernel void vxl_exp(const  struct msh_obj    msh,
                     global int              *gg,
                     global float2           *uu,
                     global float2           *bb)
 {
     int3  vxl_pos  = (int3){get_global_id(0), get_global_id(1), get_global_id(2)};
-    int   vxl_idx  = utl_idx(vxl_pos, vxl.ele.dim);
+    int   vxl_idx  = utl_idx(vxl_pos, msh.ele.dim);
 
 //    printf("%d [%v3d]\n", vxl_idx, vxl_pos);
     
@@ -167,8 +167,8 @@ kernel void vxl_exp(const  struct vxl_obj    vxl,
     for(int j=0; j<6; j++)
     {
         int3    adj_pos = vxl_pos + off[j];
-        int     adj_idx = utl_idx(adj_pos, vxl.ele.dim);
-        int     adj_bnd = utl_bnd(adj_pos, vxl.ele.dim);
+        int     adj_idx = utl_idx(adj_pos, msh.ele.dim);
+        int     adj_bnd = utl_bnd(adj_pos, msh.ele.dim);
         
         //zero neumann
         if(adj_bnd)
@@ -185,12 +185,12 @@ kernel void vxl_exp(const  struct vxl_obj    vxl,
             //grad
             float2 du = uu[adj_idx] - u;
             
-            //voltage
-            float v = du.x + du.y;
+            //voltage - directed wrt membrane
+            float v = (gg[adj_idx] - gg[vxl_idx])*(du.x + du.y);
             
-            if(vxl_idx==0&&adj_idx==1)
+            if(vxl_idx==1&&adj_idx==0)
             {
-                printf("%+f %+f %+f %+f %+f\n",v,du.x,du.y,u.x,u.y);
+                printf("%+f %+f %+f %+f %+f %+f\n",v,du.x,du.y,u.x,u.y,fn_g(v));
             }
             
             //flux
@@ -200,8 +200,11 @@ kernel void vxl_exp(const  struct vxl_obj    vxl,
         }
     }
     
+    //scale
+    float alp = msh.dt*msh.rdx2;
+    
     //ee
-    uu[vxl_idx] += vxl.dt*(dc + dp + dg);
+    uu[vxl_idx] += alp*(10.0f*dc + dp + dg);
 
     return;
 }
@@ -218,7 +221,7 @@ kernel void vxl_exp(const  struct vxl_obj    vxl,
  
 
 //ie rhs
-kernel void vxl_rhs(const  struct vxl_obj    vxl,
+kernel void vxl_rhs(const  struct msh_obj    vxl,
                     global int              *gg,
                     global float2           *uu,
                     global float2           *bb)
@@ -258,7 +261,7 @@ kernel void vxl_rhs(const  struct vxl_obj    vxl,
 
 
 //ie jacobi
-kernel void vxl_jac(const  struct vxl_obj    vxl,
+kernel void vxl_jac(const  struct msh_obj    vxl,
                     global int              *gg,
                     global float2           *uu,
                     global float2           *bb)
