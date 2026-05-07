@@ -47,14 +47,15 @@ struct dim_obj
 
 struct msh_obj
 {
-    float dt;
-    float dx;
-    
-    struct dim_obj ele;
-    struct dim_obj vtx;
+    int     nt;
+    float   dt;
 
-    float rdx;
-    float rdx2;
+    float   dx;
+    float   rdx;
+    float   rdx2;
+    
+    struct  dim_obj ele;
+    struct  dim_obj vtx;
 };
 
 /*
@@ -99,7 +100,7 @@ float fn_g(float v)
  =============================
  */
 
-kernel void vxl_ini(const  struct msh_obj   msh,
+kernel void ele_ini(const  struct msh_obj   msh,
                     global int              *gg,
                     global float2           *uu)
 {
@@ -141,12 +142,12 @@ kernel void vxl_ini(const  struct msh_obj   msh,
 
 /*
  =============================
- ee pump/diff
+ ee
  =============================
  */
 
 //ee
-kernel void vxl_exp(const  struct msh_obj    msh,
+kernel void ele_exp(const  struct msh_obj   msh,
                     global int              *gg,
                     global float2           *uu,
                     global float2           *bb)

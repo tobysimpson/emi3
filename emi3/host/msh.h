@@ -19,14 +19,15 @@ struct dim_obj
 
 struct msh_obj
 {
-    float dt;
-    float dx;
-    
-    struct dim_obj ele;
-    struct dim_obj vtx;
+    int     nt;
+    float   dt;
 
-    float rdx;
-    float rdx2;
+    float   dx;
+    float   rdx;
+    float   rdx2;
+    
+    struct  dim_obj ele;
+    struct  dim_obj vtx;
 };
 
 
@@ -43,20 +44,21 @@ void dim_ini(struct dim_obj *obj)
 }
 
 //init
-void vxl_ini(struct msh_obj *vxl)
+void msh_ini(struct msh_obj *msh)
 {
-    vxl->vtx.dim.x = vxl->ele.dim.x + 1;
-    vxl->vtx.dim.y = vxl->ele.dim.y + 1;
-    vxl->vtx.dim.z = vxl->ele.dim.z + 1;
+    msh->vtx.dim.x = msh->ele.dim.x + 1;
+    msh->vtx.dim.y = msh->ele.dim.y + 1;
+    msh->vtx.dim.z = msh->ele.dim.z + 1;
     
-    dim_ini(&vxl->ele);
-    dim_ini(&vxl->vtx);
+    dim_ini(&msh->ele);
+    dim_ini(&msh->vtx);
     
-    vxl->rdx  = powf(vxl->dx, -1);
-    vxl->rdx2 = powf(vxl->dx, -2);
+    msh->rdx  = powf(msh->dx, -1);
+    msh->rdx2 = powf(msh->dx, -2);
 
-    printf("dx %f dt %f\n", vxl->dx, vxl->dt);
-    printf("ele [%d %d %d] %d\n", vxl->ele.dim.x, vxl->ele.dim.y, vxl->ele.dim.z, vxl->ele.tot);
+    printf("dx %f\n", msh->dx);
+    printf("dt %f\n", msh->dt);
+    printf("ele [%d %d %d] %d\n", msh->ele.dim.x, msh->ele.dim.y, msh->ele.dim.z, msh->ele.tot);
 //    printf("vtx [%d %d %d] %d\n", vxl->vtx.dim.x, vxl->vtx.dim.y, vxl->vtx.dim.z, vxl->vtx.tot);
 
     return;
