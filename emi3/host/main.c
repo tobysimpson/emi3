@@ -35,9 +35,10 @@ int main(int argc, const char * argv[])
     
     //mesh
     struct msh_obj msh;
-    msh.dt = 5e-2f;
+    msh.nt = 200;
+    msh.dt = 1e-1f;
     msh.dx = 1e-0f;
-    msh.ele.dim = (cl_int3){2,1,16};
+    msh.ele.dim = (cl_int3){8,1,16};
     msh_ini(&msh);
     
     //memory
@@ -83,19 +84,17 @@ int main(int argc, const char * argv[])
     file_write(&ocl, "gg", &gg, msh.ele.tot, sizeof(cl_int), 0);
     
     //frames
-    for(int frm_idx=0; frm_idx<400; frm_idx++)
+    for(int t=0; t<msh.nt; t++)
     {
 //        printf("frm %02d\n", frm_idx);
         
         //write
-        write_xmf(&msh, frm_idx);
-        file_write(&ocl, "uu", &uu, msh.ele.tot, sizeof(cl_float2), frm_idx);
+        write_xmf(&msh, t);
+        file_write(&ocl, "uu", &uu, msh.ele.tot, sizeof(cl_float2), t);
         
-        //time per fame
-        for(int t=0; t<1; t++)
-        {
+
             //ee
-//            ocl.err = clSetKernelArg(vxl_exp, 4, sizeof(int), (void*)&frm_idx);
+            ocl.err = clSetKernelArg(ele_exp, 4, sizeof(int), (void*)&t);
             ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, ele_exp, 3, NULL, (size_t*)&msh.ele.sz, NULL, 0, NULL, &ocl.event);
             
             //ie rhs
@@ -107,7 +106,7 @@ int main(int argc, const char * argv[])
 //            {
 //                ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, vxl_jac, 3, NULL, (size_t*)&vxl.ele.sz, NULL, 0, NULL, &ocl.event);
 //            }
-        }
+
     }
 
 

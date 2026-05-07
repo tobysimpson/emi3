@@ -16,8 +16,8 @@
 constant int3   off[6]  = {{-1,+0,+0},{+1,+0,+0},{+0,-1,+0},{+0,+1,+0},{+0,+0,-1},{+0,+0,+1}};
 
 //diffusion rate
-constant float2 cc1[4] = {{1.0f,1.0f},{0.0f,0.0f},
-                          {0.0f,0.0f},{1.0f,1.0f}};
+constant float2 cc1[4] = {{2.0f,2.0f},{0.0f,0.0f},
+                          {0.0f,0.0f},{2.0f,2.0f}};
 
 //pump rate
 constant float2 pp1[4] = {{0.0f,0.0f},{0.3f,0.2f},
@@ -113,24 +113,8 @@ kernel void ele_ini(const  struct msh_obj   msh,
     //geom
     g = (vxl_pos.x >= msh.ele.dim.x/2);
     
-    //init
-    u.x = 0.5f - g;
-    u.y = g - 0.5f;
-    
-    //stim
-    int3 s0 = {0,0,0};
-    int3 s1 = {1,0,0};
-
-
-    if(all(vxl_pos==s0))
-    {
-        u.x = +0.3f;
-    }
-    
-    if(all(vxl_pos==s1))
-    {
-        u.x = -0.3f;
-    }
+    u.x = g - 0.5f;
+    u.y = 0.5f - g;
     
     //write
     gg[vxl_idx] = g;
@@ -150,7 +134,8 @@ kernel void ele_ini(const  struct msh_obj   msh,
 kernel void ele_exp(const  struct msh_obj   msh,
                     global int              *gg,
                     global float2           *uu,
-                    global float2           *bb)
+                    global float2           *bb,
+                    int                      t)
 {
     int3  vxl_pos  = (int3){get_global_id(0), get_global_id(1), get_global_id(2)};
     int   vxl_idx  = utl_idx(vxl_pos, msh.ele.dim);
@@ -163,6 +148,16 @@ kernel void ele_exp(const  struct msh_obj   msh,
     
     //read
     float2 u = uu[vxl_idx];
+    
+    int3 s1 = {msh.ele.dim.x/2-1,0,0};
+    int3 s2 = {msh.ele.dim.x/2  ,0,0};
+    
+    //stim
+    if(t==(msh.nt/2)&&all(vxl_pos==s1))
+    {
+        u.x = 0.0f;
+    }
+    
     
     //stencil
     for(int j=0; j<6; j++)
@@ -187,17 +182,18 @@ kernel void ele_exp(const  struct msh_obj   msh,
             float2 du = uu[adj_idx] - u;
             
             //voltage - directed wrt membrane
-            float v = (gg[adj_idx] - gg[vxl_idx])*(du.x + du.y);
+            float v = convert_float(gg[vxl_idx] - gg[adj_idx])*(du.x + du.y);
             
             if(vxl_idx==1&&adj_idx==0)
             {
-                printf("%+f %+f %+f %+f %+f %+f\n",v,du.x,du.y,u.x,u.y,fn_g(v));
+                printf("%03d %03d %d %+f\n",t,msh.nt/2,t==(msh.nt/2),v);
             }
             
             //flux
             dc += c*du;
             dp += p*(du - e);
             dg += g*fn_g(v)*du;
+//            dg += g*du;
         }
     }
     
@@ -205,7 +201,7 @@ kernel void ele_exp(const  struct msh_obj   msh,
     float alp = msh.dt*msh.rdx2;
     
     //ee
-    uu[vxl_idx] += alp*(10.0f*dc + dp + dg);
+    uu[vxl_idx] += alp*(dc + dp + dg);
 
     return;
 }
