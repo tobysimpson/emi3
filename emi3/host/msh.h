@@ -17,7 +17,7 @@ struct dim_obj
 };
 
 
-struct vxl_obj
+struct msh_obj
 {
     float dt;
     float dx;
@@ -43,7 +43,7 @@ void dim_ini(struct dim_obj *obj)
 }
 
 //init
-void vxl_ini(struct vxl_obj *vxl)
+void vxl_ini(struct msh_obj *vxl)
 {
     vxl->vtx.dim.x = vxl->ele.dim.x + 1;
     vxl->vtx.dim.y = vxl->ele.dim.y + 1;
