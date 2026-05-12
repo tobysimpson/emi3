@@ -28,6 +28,7 @@
 			buildPhase = DA91BA972F2B8FFA0089FCA5 /* CopyFiles */;
 			membershipExceptions = (
 				device/prg.cl,
+				device/sdf.h,
 			);
 		};
 /* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */

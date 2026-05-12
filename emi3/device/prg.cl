@@ -6,6 +6,8 @@
 //
 
 
+#include "sdf.h"
+
 /*
  =============================
  const
@@ -16,8 +18,8 @@
 constant int3   off[6]  = {{-1,+0,+0},{+1,+0,+0},{+0,-1,+0},{+0,+1,+0},{+0,+0,-1},{+0,+0,+1}};
 
 //diffusion rate
-constant float2 cc1[4] = {{4.0f,4.0f},{0.0f,0.0f},
-                          {0.0f,0.0f},{4.0f,4.0f}};
+constant float2 cc1[4] = {{2.0f,2.0f},{0.0f,0.0f},
+                          {0.0f,0.0f},{2.0f,2.0f}};
 
 //gate rate
 constant float2 gg1[4] = {{0.0f,0.0f},{2.0f,1.0f},
@@ -112,6 +114,13 @@ kernel void ele_ini(const  struct msh_obj   msh,
     int     g = 0;
     float2  u = 0.0f;
     
+    //sdf
+//    float3  x = convert_float3(ele_pos);
+//    float3  c = convert_float3(msh.ele.dim/2) - 0.5f;
+//    float   r = convert_float(msh.ele.dim.x/3);
+//    g = sdf_sph(x, c, r); // <= 0.0f;
+    
+    
     //geom
     g = (ele_pos.x >= msh.ele.dim.x/2);
     
@@ -148,12 +157,6 @@ kernel void ele_exp(const  struct msh_obj   msh,
     int     g = gg[ele_idx];
     float2  u = uu[ele_idx];
     
-    //stim
-    if((t>10)&&(t<15)&&(ele_pos.z==0))
-    {
-        u.x = u.x*0.75f;
-    }
-    
     //sum
     float2 s = 0.0f;
     
@@ -183,12 +186,25 @@ kernel void ele_exp(const  struct msh_obj   msh,
             //voltage (wrt membrane)
             float v = dg*(du.x + du.y);
             
-            if(all(ele_pos==(msh.ele.dim/2)))
+            
+            //stim
+            if((t>10)&&(t<20)&&dg!=0&&(ele_pos.z==0))
             {
-                printf("%03d [%v3d] %+f\n",t,ele_pos,v);
+                v = 0.2f;
+            }
+            
+            
+            
+            if(dg==1&&all(ele_pos==(int3){3,0,0}))
+//            if(dg==1)
+            {
+                printf("%03d [%v3d] %+d %+f\n",t,ele_pos,dg,v);
             }
             
             //flux
+//            s += c1*du;
+//            s += c1*du + p1*(du - e1);
+//            s += c1*du + g1*fn_g(v)*du;
             s += c1*du + p1*(du - e1) + g1*fn_g(v)*du;
         }
     }

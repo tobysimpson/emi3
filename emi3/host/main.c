@@ -38,7 +38,7 @@ int main(int argc, const char * argv[])
     msh.nt = 200;
     msh.dt = 1e-1f;
     msh.dx = 1e-0f;
-    msh.ele.dim = (cl_int3){8,1,16};
+    msh.ele.dim = (cl_int3){16,1,32};
     msh_ini(&msh);
     
     //memory
