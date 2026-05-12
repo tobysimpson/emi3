@@ -16,8 +16,12 @@
 constant int3   off[6]  = {{-1,+0,+0},{+1,+0,+0},{+0,-1,+0},{+0,+1,+0},{+0,+0,-1},{+0,+0,+1}};
 
 //diffusion rate
-constant float2 cc1[4] = {{2.0f,2.0f},{0.0f,0.0f},
-                          {0.0f,0.0f},{2.0f,2.0f}};
+constant float2 cc1[4] = {{4.0f,4.0f},{0.0f,0.0f},
+                          {0.0f,0.0f},{4.0f,4.0f}};
+
+//gate rate
+constant float2 gg1[4] = {{0.0f,0.0f},{2.0f,1.0f},
+                          {2.0f,1.0f},{0.0f,0.0f}};
 
 //pump rate
 constant float2 pp1[4] = {{0.0f,0.0f},{0.3f,0.2f},
@@ -27,9 +31,7 @@ constant float2 pp1[4] = {{0.0f,0.0f},{0.3f,0.2f},
 constant float2 ee1[4] = {{+0.0f,+0.0f},{-1.0f,+1.0f},
                           {+1.0f,-1.0f},{+0.0f,+0.0f}};
 
-//gate rate
-constant float2 gg1[4] = {{0.0f,0.0f},{3.0f,1.0f},
-                          {3.0f,1.0f},{0.0f,0.0f}};
+
 
 /*
  =============================
@@ -91,7 +93,7 @@ int utl_nxn(int i, int j, int n)
 //gate logistic shifted/scaled
 float fn_g(float v)
 {
-    return pow(1e0f+exp((0.2f-v)/0.02f),-1e0f);
+    return pow(1e0f+exp((0.1f-v)/0.015f),-1);
 }
 
 /*
@@ -104,21 +106,21 @@ kernel void ele_ini(const  struct msh_obj   msh,
                     global int              *gg,
                     global float2           *uu)
 {
-    int3 vxl_pos = (int3){get_global_id(0),get_global_id(1),get_global_id(2)};
-    int  vxl_idx = utl_idx(vxl_pos, msh.ele.dim);
+    int3 ele_pos = (int3){get_global_id(0),get_global_id(1),get_global_id(2)};
+    int  ele_idx = utl_idx(ele_pos, msh.ele.dim);
     
     int     g = 0;
     float2  u = 0.0f;
     
     //geom
-    g = (vxl_pos.x >= msh.ele.dim.x/2);
+    g = (ele_pos.x >= msh.ele.dim.x/2);
     
-    u.x = g - 0.5f;
-    u.y = 0.5f - g;
+    u.x = 0.5f - g;
+    u.y = g - 0.5f;
     
     //write
-    gg[vxl_idx] = g;
-    uu[vxl_idx] = u;
+    gg[ele_idx] = g;
+    uu[ele_idx] = u;
     
     return;
 }
@@ -137,32 +139,28 @@ kernel void ele_exp(const  struct msh_obj   msh,
                     global float2           *bb,
                     int                      t)
 {
-    int3  vxl_pos  = (int3){get_global_id(0), get_global_id(1), get_global_id(2)};
-    int   vxl_idx  = utl_idx(vxl_pos, msh.ele.dim);
+    int3  ele_pos  = (int3){get_global_id(0), get_global_id(1), get_global_id(2)};
+    int   ele_idx  = utl_idx(ele_pos, msh.ele.dim);
 
-//    printf("%d [%v3d]\n", vxl_idx, vxl_pos);
-    
-    float2 dp = 0.0f;
-    float2 dg = 0.0f;
-    float2 dc = 0.0f;
+//    printf("%d [%v3d]\n", ele_idx, ele_pos);
     
     //read
-    float2 u = uu[vxl_idx];
-    
-    int3 s1 = {msh.ele.dim.x/2-1,0,0};
-    int3 s2 = {msh.ele.dim.x/2  ,0,0};
+    int     g = gg[ele_idx];
+    float2  u = uu[ele_idx];
     
     //stim
-    if(t==(msh.nt/2)&&all(vxl_pos==s1))
+    if((t>10)&&(t<15)&&(ele_pos.z==0))
     {
-        u.x = 0.0f;
+        u.x = u.x*0.75f;
     }
     
+    //sum
+    float2 s = 0.0f;
     
     //stencil
     for(int j=0; j<6; j++)
     {
-        int3    adj_pos = vxl_pos + off[j];
+        int3    adj_pos = ele_pos + off[j];
         int     adj_idx = utl_idx(adj_pos, msh.ele.dim);
         int     adj_bnd = utl_bnd(adj_pos, msh.ele.dim);
         
@@ -170,38 +168,36 @@ kernel void ele_exp(const  struct msh_obj   msh,
         if(adj_bnd)
         {
             //edge lookup 2x2
-            int edg_typ = utl_nxn(gg[vxl_idx], gg[adj_idx], 2);
+            int edg_typ = utl_nxn(gg[ele_idx], gg[adj_idx], 2);
             
             //constants
-            float2 c = cc1[edg_typ];
-            float2 p = pp1[edg_typ];
-            float2 e = ee1[edg_typ];
-            float2 g = gg1[edg_typ];
+            float2 c1 = cc1[edg_typ];
+            float2 g1 = gg1[edg_typ];
+            float2 p1 = pp1[edg_typ];
+            float2 e1 = ee1[edg_typ];
             
             //grad
-            float2 du = uu[adj_idx] - u;
+            int     dg = gg[adj_idx] - g;
+            float2  du = uu[adj_idx] - u;
             
-            //voltage - directed wrt membrane
-            float v = convert_float(gg[vxl_idx] - gg[adj_idx])*(du.x + du.y);
+            //voltage (wrt membrane)
+            float v = dg*(du.x + du.y);
             
-            if(vxl_idx==1&&adj_idx==0)
+            if(all(ele_pos==(msh.ele.dim/2)))
             {
-                printf("%03d %03d %d %+f\n",t,msh.nt/2,t==(msh.nt/2),v);
+                printf("%03d [%v3d] %+f\n",t,ele_pos,v);
             }
             
             //flux
-            dc += c*du;
-            dp += p*(du - e);
-            dg += g*fn_g(v)*du;
-//            dg += g*du;
+            s += c1*du + p1*(du - e1) + g1*fn_g(v)*du;
         }
     }
     
     //scale
-    float alp = msh.dt*msh.rdx2;
+    float alp = msh.dt;
     
     //ee
-    uu[vxl_idx] += alp*(dc + dp + dg);
+    uu[ele_idx] += alp*s;
 
     return;
 }
@@ -223,21 +219,21 @@ kernel void vxl_rhs(const  struct msh_obj    vxl,
                     global float2           *uu,
                     global float2           *bb)
 {
-    int3  vxl_pos  = (int3){get_global_id(0), get_global_id(1), get_global_id(2)};
-    int   vxl_idx  = utl_idx(vxl_pos, vxl.ele.dim);
+    int3  ele_pos  = (int3){get_global_id(0), get_global_id(1), get_global_id(2)};
+    int   ele_idx  = utl_idx(ele_pos, vxl.ele.dim);
     
     float2 s = 0.0f;
     
     //stencil
     for(int i=0; i<6; i++)
     {
-        int3    adj_pos = vxl_pos + off[i];
+        int3    adj_pos = ele_pos + off[i];
         int     adj_idx = utl_idx(adj_pos, vxl.ele.dim);
         int     adj_bnd = utl_bnd(adj_pos, vxl.ele.dim);
         
         if(adj_bnd)
         {
-            int cnd_idx = gg[vxl_idx]*3 + gg[adj_idx];      //lookup
+            int cnd_idx = gg[ele_idx]*3 + gg[adj_idx];      //lookup
             
             float2 p1 = pp1[cnd_idx];                       //pump cond
             float2 p2 = pp2[cnd_idx];                       //pump level
@@ -250,7 +246,7 @@ kernel void vxl_rhs(const  struct msh_obj    vxl,
     float2 alp = vxl.dt;    //no dx pot diff. not grad
     
     //write
-    bb[vxl_idx] = uu[vxl_idx] + alp*s;
+    bb[ele_idx] = uu[ele_idx] + alp*s;
 
     return;
 }
@@ -263,8 +259,8 @@ kernel void vxl_jac(const  struct msh_obj    vxl,
                     global float2           *uu,
                     global float2           *bb)
 {
-    int3  vxl_pos  = (int3){get_global_id(0), get_global_id(1), get_global_id(2)};
-    int   vxl_idx  = utl_idx(vxl_pos, vxl.ele.dim);
+    int3  ele_pos  = (int3){get_global_id(0), get_global_id(1), get_global_id(2)};
+    int   ele_idx  = utl_idx(ele_pos, vxl.ele.dim);
     
     float2 s = 0.0f;
     float2 d = 0.0f;
@@ -272,13 +268,13 @@ kernel void vxl_jac(const  struct msh_obj    vxl,
     //stencil
     for(int i=0; i<6; i++)
     {
-        int3    adj_pos = vxl_pos + off[i];
+        int3    adj_pos = ele_pos + off[i];
         int     adj_idx = utl_idx(adj_pos, vxl.ele.dim);
         int     adj_bnd = utl_bnd(adj_pos, vxl.ele.dim);
         
         if(adj_bnd)
         {
-            int cnd_idx = gg[vxl_idx]*3 + gg[adj_idx];      //lookup (?? needs to be clearer)
+            int cnd_idx = gg[ele_idx]*3 + gg[adj_idx];      //lookup (?? needs to be clearer)
             
             float2 c1 = cc1[cnd_idx];                        //passive conductivity
             float2 p1 = pp1[cnd_idx];                        //pump conductivity
@@ -292,7 +288,7 @@ kernel void vxl_jac(const  struct msh_obj    vxl,
     float2 alp = vxl.dt*vxl.rdx2;
     
     //ie
-    uu[vxl_idx] = (bb[vxl_idx] + alp*s)/(1e0f - alp*d);
+    uu[ele_idx] = (bb[ele_idx] + alp*s)/(1e0f - alp*d);
 
     return;
 }

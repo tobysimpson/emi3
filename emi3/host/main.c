@@ -46,10 +46,6 @@ int main(int argc, const char * argv[])
     cl_mem uu = clCreateBuffer(ocl.context, CL_MEM_READ_WRITE, msh.ele.tot*sizeof(cl_float2), NULL, &ocl.err);
     cl_mem bb = clCreateBuffer(ocl.context, CL_MEM_READ_WRITE, msh.ele.tot*sizeof(cl_float2), NULL, &ocl.err);
 
-    
-    //read
-//    file_read(&ocl, "vxl_tag.dat", &gg, vxl.ne_tot, sizeof(cl_float));
-    
     //kernels
     cl_kernel ele_ini = clCreateKernel(ocl.program, "ele_ini", &ocl.err);
     cl_kernel ele_exp = clCreateKernel(ocl.program, "ele_exp", &ocl.err);
@@ -92,7 +88,6 @@ int main(int argc, const char * argv[])
         write_xmf(&msh, t);
         file_write(&ocl, "uu", &uu, msh.ele.tot, sizeof(cl_float2), t);
         
-
             //ee
             ocl.err = clSetKernelArg(ele_exp, 4, sizeof(int), (void*)&t);
             ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, ele_exp, 3, NULL, (size_t*)&msh.ele.sz, NULL, 0, NULL, &ocl.event);
