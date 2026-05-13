@@ -235,14 +235,15 @@ kernel void ele_jac(const  struct msh_obj   msh,
     int3  ele_pos  = (int3){get_global_id(0), get_global_id(1), get_global_id(2)};
     int   ele_idx  = utl_idx(ele_pos, msh.ele.dim);
     
-    printf("%02d [%v3d]\n", ele_idx, ele_pos);
+//    printf("%02d [%v3d]\n", ele_idx, ele_pos);
     
-    float2 s = 0.0f;
+    //diag, off-diag
     float2 d = 0.0f;
+    float2 s = 0.0f;
     
     //read
 //    int     ele_geo = gg[ele_idx];
-//    float2  ele_u   = uu[ele_idx];
+    float2  ele_u   = uu[ele_idx];
     
     //stencil
     for(int j=0; j<6; j++)
@@ -251,6 +252,7 @@ kernel void ele_jac(const  struct msh_obj   msh,
         int     adj_idx = utl_idx(adj_pos, msh.ele.dim);
         int     adj_bnd = utl_bnd(adj_pos, msh.ele.dim);
         
+        //zero-neumann
         if(adj_bnd)
         {
             //read
@@ -274,9 +276,8 @@ kernel void ele_jac(const  struct msh_obj   msh,
 //            float v = dg*(du.x + du.y);
             
             //conduct
-            float2 c = {1.0f,1.0f};
+            float2 c = 1.0f;
 //            float2 c = c1 + p1 + g1*fn_g(v);
-            
             
             //diag, off-diag
             d -= c;
@@ -285,11 +286,15 @@ kernel void ele_jac(const  struct msh_obj   msh,
     }
     
     //constants
-//    float alp = msh.dt*msh.rdx2;
+    float alp = msh.dt*msh.rdx2;
+    
+    //ee
+//    uu[ele_idx] += alp*(s + d*ele_u);
     
     //ie
-//    uu[ele_idx] = (bb[ele_idx] + alp*s)/(1e0f - alp*d);
-    uu[ele_idx] = 1.0f;
+    uu[ele_idx] = (bb[ele_idx] + alp*s)/(1e0f - alp*d);
+
+
 
     return;
 }
