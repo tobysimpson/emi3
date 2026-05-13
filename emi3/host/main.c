@@ -35,10 +35,10 @@ int main(int argc, const char * argv[])
     
     //mesh
     struct msh_obj msh;
-    msh.nt = 200;
+    msh.nt = 1;
     msh.dt = 1e-1f;
     msh.dx = 1e-0f;
-    msh.ele.dim = (cl_int3){16,1,32};
+    msh.ele.dim = (cl_int3){4,1,4};
     msh_ini(&msh);
     
     //memory
@@ -49,28 +49,30 @@ int main(int argc, const char * argv[])
     //kernels
     cl_kernel ele_ini = clCreateKernel(ocl.program, "ele_ini", &ocl.err);
     cl_kernel ele_exp = clCreateKernel(ocl.program, "ele_exp", &ocl.err);
-    cl_kernel vxl_rhs = clCreateKernel(ocl.program, "vxl_rhs", &ocl.err);
-    cl_kernel vxl_jac = clCreateKernel(ocl.program, "vxl_jac", &ocl.err);
+    cl_kernel ele_jac = clCreateKernel(ocl.program, "ele_jac", &ocl.err);
+    cl_kernel ele_rhs = clCreateKernel(ocl.program, "ele_rhs", &ocl.err);
     
+
     //args
     ocl.err = clSetKernelArg(ele_ini, 0, sizeof(struct msh_obj),   (void*)&msh);
     ocl.err = clSetKernelArg(ele_ini, 1, sizeof(cl_mem),           (void*)&gg);
     ocl.err = clSetKernelArg(ele_ini, 2, sizeof(cl_mem),           (void*)&uu);
+    ocl.err = clSetKernelArg(ele_ini, 3, sizeof(cl_mem),           (void*)&bb);
     
     ocl.err = clSetKernelArg(ele_exp, 0, sizeof(struct msh_obj),   (void*)&msh);
     ocl.err = clSetKernelArg(ele_exp, 1, sizeof(cl_mem),           (void*)&gg);
     ocl.err = clSetKernelArg(ele_exp, 2, sizeof(cl_mem),           (void*)&uu);
     ocl.err = clSetKernelArg(ele_exp, 3, sizeof(cl_mem),           (void*)&bb);
     
-    ocl.err = clSetKernelArg(vxl_rhs, 0, sizeof(struct msh_obj),   (void*)&msh);
-    ocl.err = clSetKernelArg(vxl_rhs, 1, sizeof(cl_mem),           (void*)&gg);
-    ocl.err = clSetKernelArg(vxl_rhs, 2, sizeof(cl_mem),           (void*)&uu);
-    ocl.err = clSetKernelArg(vxl_rhs, 3, sizeof(cl_mem),           (void*)&bb);
+    ocl.err = clSetKernelArg(ele_jac, 0, sizeof(struct msh_obj),   (void*)&msh);
+    ocl.err = clSetKernelArg(ele_jac, 1, sizeof(cl_mem),           (void*)&gg);
+    ocl.err = clSetKernelArg(ele_jac, 2, sizeof(cl_mem),           (void*)&uu);
+    ocl.err = clSetKernelArg(ele_jac, 3, sizeof(cl_mem),           (void*)&bb);
     
-    ocl.err = clSetKernelArg(vxl_jac, 0, sizeof(struct msh_obj),   (void*)&msh);
-    ocl.err = clSetKernelArg(vxl_jac, 1, sizeof(cl_mem),           (void*)&gg);
-    ocl.err = clSetKernelArg(vxl_jac, 2, sizeof(cl_mem),           (void*)&uu);
-    ocl.err = clSetKernelArg(vxl_jac, 3, sizeof(cl_mem),           (void*)&bb);
+    ocl.err = clSetKernelArg(ele_rhs, 0, sizeof(struct msh_obj),   (void*)&msh);
+    ocl.err = clSetKernelArg(ele_rhs, 1, sizeof(cl_mem),           (void*)&gg);
+    ocl.err = clSetKernelArg(ele_rhs, 2, sizeof(cl_mem),           (void*)&uu);
+    ocl.err = clSetKernelArg(ele_rhs, 3, sizeof(cl_mem),           (void*)&bb);
     
     
     //init
@@ -80,27 +82,27 @@ int main(int argc, const char * argv[])
     file_write(&ocl, "gg", &gg, msh.ele.tot, sizeof(cl_int), 0);
     
     //frames
-    for(int t=0; t<msh.nt; t++)
+    for(int i=0; i<msh.nt; i++)
     {
-//        printf("frm %02d\n", frm_idx);
+        printf("i %02d\n", i);
         
         //write
-        write_xmf(&msh, t);
-        file_write(&ocl, "uu", &uu, msh.ele.tot, sizeof(cl_float2), t);
+        write_xmf(&msh, i);
+        file_write(&ocl, "uu", &uu, msh.ele.tot, sizeof(cl_float2), i);
         
             //ee
-            ocl.err = clSetKernelArg(ele_exp, 4, sizeof(int), (void*)&t);
-            ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, ele_exp, 3, NULL, (size_t*)&msh.ele.sz, NULL, 0, NULL, &ocl.event);
+//            ocl.err = clSetKernelArg(ele_exp, 4, sizeof(int), (void*)&t);
+//            ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, ele_exp, 3, NULL, (size_t*)&msh.ele.sz, NULL, 0, NULL, &ocl.event);
             
             //ie rhs
 //            ocl.err = clEnqueueCopyBuffer(ocl.command_queue, uu, bb, 0, 0, vxl.ele.tot*sizeof(cl_float2), 0, NULL, &ocl.event);
 //            ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, vxl_rhs, 3, NULL, (size_t*)&vxl.ele.sz, NULL, 0, NULL, &ocl.event); //use with jacobi
             
-//            //ie jacobi
-//            for(int t=0; t<10; t++)
-//            {
-//                ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, vxl_jac, 3, NULL, (size_t*)&vxl.ele.sz, NULL, 0, NULL, &ocl.event);
-//            }
+            //ie jacobi
+            for(int k=0; k<1; k++)
+            {
+                ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, ele_jac, 3, NULL, (size_t*)&msh.ele.sz, NULL, 0, NULL, &ocl.event);
+            }
 
     }
 
@@ -123,10 +125,9 @@ int main(int argc, const char * argv[])
     //kernels
     ocl.err = clReleaseKernel(ele_ini);
     ocl.err = clReleaseKernel(ele_exp);
-    ocl.err = clReleaseKernel(vxl_rhs);
-    ocl.err = clReleaseKernel(vxl_jac);
+    ocl.err = clReleaseKernel(ele_jac);
+    ocl.err = clReleaseKernel(ele_rhs);
     
-
     //final
     ocl_fin(&ocl);
     
