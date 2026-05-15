@@ -30,8 +30,8 @@ constant float2 pp1[4] = {{0.0f,0.0f},{0.3f,0.2f},
                           {0.3f,0.2f},{0.0f,0.0f}};
 
 //pump equilibrium
-constant float2 ee1[4] = {{+0.0f,+0.0f},{-1.0f,+1.0f},
-                          {+1.0f,-1.0f},{+0.0f,+0.0f}};
+constant float2 ee1[4] = {{+0.0f,+0.0f},{+1.0f,-1.0f},
+                          {-1.0f,+1.0f},{+0.0f,+0.0f}};
 
 /*
  =============================
@@ -125,8 +125,8 @@ kernel void ele_ini(const  struct msh_obj   msh,
     g = (ele_pos.x >= msh.ele.dim.x/2);
     
     //soln
-    u.x = 0.5f - g;
-    u.y = g - 0.5f;
+//    u.x = 0.5f - g;
+//    u.y = g - 0.5f;
     
     //stim
     if(all(ele_pos==(int3){0,0,0}))
@@ -148,7 +148,7 @@ kernel void ele_ini(const  struct msh_obj   msh,
 
 /*
  =============================
- ie
+ implicit
  =============================
  */
 
@@ -191,7 +191,7 @@ kernel void ele_jac(const  struct msh_obj   msh,
             //constants
             float2 c1 = cc1[edg_typ];
             float2 g1 = gg1[edg_typ];
-//            float2 p1 = pp1[edg_typ];
+            float2 p1 = pp1[edg_typ];
 //            float2 e1 = ee1[edg_typ];
             
             //grad
@@ -202,8 +202,8 @@ kernel void ele_jac(const  struct msh_obj   msh,
             float v = dg*(du.x + du.y);
             
             //conductivity
-//            float2 c = c1;
-            float2 c = c1 + g1*fn_g(v);
+            float2 c = c1 + p1;
+//            float2 c = c1 + p1 + g1*fn_g(v);
             
             //diag, off-diag
             d -= c;
@@ -213,9 +213,6 @@ kernel void ele_jac(const  struct msh_obj   msh,
     
     //constants
     float alp = msh.dt*msh.rdx2;
-    
-    //ee
-//    uu[ele_idx] += alp*(s + d*ele_u);
     
     //ie
     uu[ele_idx] = (bb[ele_idx] + alp*s)/(1e0f - alp*d);
@@ -256,43 +253,29 @@ kernel void ele_rhs(const  struct msh_obj   msh,
         {
             //read
             int     adj_geo = gg[adj_idx];
-            float2  adj_u   = uu[adj_idx];
-            
+//            float2  adj_u   = uu[adj_idx];
+
             //edge lookup 2x2
             int edg_typ = utl_nxn(ele_geo, adj_geo, 2);
             
             //constants
-            float2 c1 = cc1[edg_typ];
-            float2 g1 = gg1[edg_typ];
-//            float2 p1 = pp1[edg_typ];
-//            float2 e1 = ee1[edg_typ];
-            
-            //grad
-            int     dg = adj_geo - ele_geo;
-            float2  du = adj_u - ele_u;
-            
-            //voltage (wrt membrane)
-            float v = dg*(du.x + du.y);
+            float2 p1 = pp1[edg_typ];
+            float2 e1 = ee1[edg_typ];
             
             //conductivity
-//            float2 c = c1;
-            float2 c = c1 + g1*fn_g(v);
+            float2 c = p1*e1;
             
             //diag, off-diag
             d -= c;
-            s += c*adj_u;
+            s += c;
         }
     }
     
     //constants
     float alp = msh.dt*msh.rdx2;
     
-    //ee
-//    uu[ele_idx] += alp*(s + d*ele_u);
-    
     //ie
-    bb[ele_idx] = uu[ele_idx];
-
+    bb[ele_idx] = ele_u + alp*s;
 
     return;
 }
@@ -300,7 +283,7 @@ kernel void ele_rhs(const  struct msh_obj   msh,
 
 /*
  =============================
- ee
+ explicit
  =============================
  */
 
