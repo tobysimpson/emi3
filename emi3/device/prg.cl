@@ -129,7 +129,8 @@ kernel void ele_ini(const  struct msh_obj   msh,
     u.y = g - 0.5f;
     
     //stim
-    if(all(ele_pos<(int3){2,2,2}))
+//    if(all(ele_pos<(int3){2,2,2}))
+    if(all(ele_pos==(int3){msh.ele.dim.x/2 - 1, msh.ele.dim.y - 1, 0}))
     {
         u.x = 0;
     }

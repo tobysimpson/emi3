@@ -38,7 +38,7 @@ int main(int argc, const char * argv[])
     msh.nt = 100;
     msh.dt = 1e2f;
     msh.dx = 1e-0f;
-    msh.ele.dim = (cl_int3){8,1,64};
+    msh.ele.dim = (cl_int3){10,1,100};
     msh_ini(&msh);
     
     //memory
@@ -84,26 +84,25 @@ int main(int argc, const char * argv[])
     //frames
     for(int i=0; i<msh.nt; i++)
     {
-        printf("i %02d\n", i);
+//        printf("i %02d\n", i);
         
         //write
         write_xmf(&msh, i);
         file_write(&ocl, "uu", &uu, msh.ele.tot, sizeof(cl_float2), i);
         
-            //ee
-//            ocl.err = clSetKernelArg(ele_exp, 4, sizeof(int), (void*)&t);
-//            ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, ele_exp, 3, NULL, (size_t*)&msh.ele.sz, NULL, 0, NULL, &ocl.event);
-            
-            //ie rhs
-//            ocl.err = clEnqueueCopyBuffer(ocl.command_queue, uu, bb, 0, 0, msh.ele.tot*sizeof(cl_float2), 0, NULL, &ocl.event);
-            ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, ele_rhs, 3, NULL, (size_t*)&msh.ele.sz, NULL, 0, NULL, &ocl.event);     //pump
-            
-            //ie jacobi
-            for(int k=0; k<10; k++)
-            {
-                ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, ele_jac, 3, NULL, (size_t*)&msh.ele.sz, NULL, 0, NULL, &ocl.event);
-            }
-
+        //ee
+//      ocl.err = clSetKernelArg(ele_exp, 4, sizeof(int), (void*)&t);
+//      ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, ele_exp, 3, NULL, (size_t*)&msh.ele.sz, NULL, 0, NULL, &ocl.event);
+        
+        //ie rhs
+//      ocl.err = clEnqueueCopyBuffer(ocl.command_queue, uu, bb, 0, 0, msh.ele.tot*sizeof(cl_float2), 0, NULL, &ocl.event);
+        ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, ele_rhs, 3, NULL, (size_t*)&msh.ele.sz, NULL, 0, NULL, &ocl.event);     //pump
+        
+        //ie jacobi
+        for(int k=0; k<10; k++)
+        {
+            ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, ele_jac, 3, NULL, (size_t*)&msh.ele.sz, NULL, 0, NULL, &ocl.event);
+        }
     }
 
 
