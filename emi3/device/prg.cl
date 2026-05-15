@@ -18,8 +18,8 @@
 constant int3   off[6]  = {{-1,+0,+0},{+1,+0,+0},{+0,-1,+0},{+0,+1,+0},{+0,+0,-1},{+0,+0,+1}};
 
 //diffusion rate
-constant float2 cc1[4] = {{2.0f,2.0f},{0.0f,0.0f},
-                          {0.0f,0.0f},{2.0f,2.0f}};
+constant float2 cc1[4] = {{1.0f,1.0f},{0.0f,0.0f},
+                          {0.0f,0.0f},{1.0f,1.0f}};
 
 //gate rate
 constant float2 gg1[4] = {{0.0f,0.0f},{2.0f,1.0f},
@@ -126,8 +126,15 @@ kernel void ele_ini(const  struct msh_obj   msh,
     //geom
     g = (ele_pos.x >= msh.ele.dim.x/2);
     
+    //soln
     u.x = 0.5f - g;
     u.y = g - 0.5f;
+    
+    //stim
+    if(all(ele_pos==(int3){0,0,0}))
+    {
+        u.x = 0;
+    }
     
     //write
     gg[ele_idx] = g;
@@ -136,6 +143,89 @@ kernel void ele_ini(const  struct msh_obj   msh,
     
     return;
 }
+
+
+
+
+
+/*
+ =============================
+ ie
+ =============================
+ */
+
+//ie jacobi
+kernel void ele_jac(const  struct msh_obj   msh,
+                    global int              *gg,
+                    global float2           *uu,
+                    global float2           *bb)
+{
+    int3  ele_pos  = (int3){get_global_id(0), get_global_id(1), get_global_id(2)};
+    int   ele_idx  = utl_idx(ele_pos, msh.ele.dim);
+    
+//    printf("%02d [%v3d]\n", ele_idx, ele_pos);
+    
+    //diag, off-diag
+    float2 d = 0.0f;
+    float2 s = 0.0f;
+    
+    //read
+    int     ele_geo = gg[ele_idx];
+    float2  ele_u   = uu[ele_idx];
+    
+    //stencil
+    for(int j=0; j<6; j++)
+    {
+        int3    adj_pos = ele_pos + off[j];
+        int     adj_idx = utl_idx(adj_pos, msh.ele.dim);
+        int     adj_bnd = utl_bnd(adj_pos, msh.ele.dim);
+        
+        //zero-neumann
+        if(adj_bnd)
+        {
+            //read
+            int     adj_geo = gg[adj_idx];
+            float2  adj_u   = uu[adj_idx];
+            
+            //edge lookup 2x2
+            int edg_typ = utl_nxn(ele_geo, adj_geo, 2);
+            
+            //constants
+            float2 c1 = cc1[edg_typ];
+            float2 g1 = gg1[edg_typ];
+//            float2 p1 = pp1[edg_typ];
+//            float2 e1 = ee1[edg_typ];
+            
+            //grad
+            int     dg = adj_geo - ele_geo;
+            float2  du = adj_u - ele_u;
+            
+            //voltage (wrt membrane)
+            float v = dg*(du.x + du.y);
+            
+            //conductivity
+//            float2 c = c1;
+            float2 c = c1 + g1*fn_g(v);
+            
+            //diag, off-diag
+            d -= c;
+            s += c*adj_u;
+        }
+    }
+    
+    //constants
+    float alp = msh.dt*msh.rdx2;
+    
+    //ee
+//    uu[ele_idx] += alp*(s + d*ele_u);
+    
+    //ie
+    uu[ele_idx] = (bb[ele_idx] + alp*s)/(1e0f - alp*d);
+
+
+    return;
+}
+
 
 
 /*
@@ -203,98 +293,15 @@ kernel void ele_exp(const  struct msh_obj   msh,
             }
             
             //flux
-//            s += c1*du;
-//            s += c1*du + p1*(du - e1);
-//            s += c1*du + g1*fn_g(v)*du;
             s += c1*du + p1*(du - e1) + g1*fn_g(v)*du;
         }
     }
     
     //scale
-    float alp = msh.dt;
-    
-    //ee
-    uu[ele_idx] += alp*s;
-
-    return;
-}
-
-
-/*
- =============================
- ie
- =============================
- */
-
-//ie jacobi
-kernel void ele_jac(const  struct msh_obj   msh,
-                    global int              *gg,
-                    global float2           *uu,
-                    global float2           *bb)
-{
-    int3  ele_pos  = (int3){get_global_id(0), get_global_id(1), get_global_id(2)};
-    int   ele_idx  = utl_idx(ele_pos, msh.ele.dim);
-    
-//    printf("%02d [%v3d]\n", ele_idx, ele_pos);
-    
-    //diag, off-diag
-    float2 d = 0.0f;
-    float2 s = 0.0f;
-    
-    //read
-//    int     ele_geo = gg[ele_idx];
-    float2  ele_u   = uu[ele_idx];
-    
-    //stencil
-    for(int j=0; j<6; j++)
-    {
-        int3    adj_pos = ele_pos + off[j];
-        int     adj_idx = utl_idx(adj_pos, msh.ele.dim);
-        int     adj_bnd = utl_bnd(adj_pos, msh.ele.dim);
-        
-        //zero-neumann
-        if(adj_bnd)
-        {
-            //read
-//            int     adj_geo = gg[adj_idx];
-            float2  adj_u   = uu[adj_idx];
-            
-            //edge lookup 2x2
-//            int edg_typ = utl_nxn(ele_geo, adj_geo, 2);
-            
-            //constants
-//            float2 c1 = cc1[edg_typ];
-//            float2 g1 = gg1[edg_typ];
-//            float2 p1 = pp1[edg_typ];
-//            float2 e1 = ee1[edg_typ];
-            
-            //grad
-//            int     dg = adj_geo - ele_geo;
-//            float2  du = adj_u - ele_u;
-            
-            //voltage (wrt membrane)
-//            float v = dg*(du.x + du.y);
-            
-            //conduct
-            float2 c = 1.0f;
-//            float2 c = c1 + p1 + g1*fn_g(v);
-            
-            //diag, off-diag
-            d -= c;
-            s += c*adj_u;
-        }
-    }
-    
-    //constants
     float alp = msh.dt*msh.rdx2;
     
     //ee
-//    uu[ele_idx] += alp*(s + d*ele_u);
-    
-    //ie
-    uu[ele_idx] = (bb[ele_idx] + alp*s)/(1e0f - alp*d);
-
-
+    uu[ele_idx] += alp*s;
 
     return;
 }

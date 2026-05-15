@@ -36,9 +36,9 @@ int main(int argc, const char * argv[])
     //mesh
     struct msh_obj msh;
     msh.nt = 100;
-    msh.dt = 1e-2f;
+    msh.dt = 1e-1f;
     msh.dx = 1e-0f;
-    msh.ele.dim = (cl_int3){4,1,4};
+    msh.ele.dim = (cl_int3){8,1,8};
     msh_ini(&msh);
     
     //memory
