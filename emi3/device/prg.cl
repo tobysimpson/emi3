@@ -125,11 +125,11 @@ kernel void ele_ini(const  struct msh_obj   msh,
     g = (ele_pos.x >= msh.ele.dim.x/2);
     
     //soln
-//    u.x = 0.5f - g;
-//    u.y = g - 0.5f;
+    u.x = 0.5f - g;
+    u.y = g - 0.5f;
     
     //stim
-    if(all(ele_pos==(int3){0,0,0}))
+    if(all(ele_pos<(int3){2,2,2}))
     {
         u.x = 0;
     }
@@ -202,8 +202,8 @@ kernel void ele_jac(const  struct msh_obj   msh,
             float v = dg*(du.x + du.y);
             
             //conductivity
-            float2 c = c1 + p1;
-//            float2 c = c1 + p1 + g1*fn_g(v);
+//            float2 c = c1 + p1;
+            float2 c = c1 + p1 + g1*fn_g(v);
             
             //diag, off-diag
             d -= c;

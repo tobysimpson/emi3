@@ -36,9 +36,9 @@ int main(int argc, const char * argv[])
     //mesh
     struct msh_obj msh;
     msh.nt = 100;
-    msh.dt = 1e-1f;
+    msh.dt = 1e2f;
     msh.dx = 1e-0f;
-    msh.ele.dim = (cl_int3){8,1,8};
+    msh.ele.dim = (cl_int3){8,1,64};
     msh_ini(&msh);
     
     //memory
@@ -96,7 +96,7 @@ int main(int argc, const char * argv[])
             
             //ie rhs
 //            ocl.err = clEnqueueCopyBuffer(ocl.command_queue, uu, bb, 0, 0, msh.ele.tot*sizeof(cl_float2), 0, NULL, &ocl.event);
-            ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, ele_rhs, 3, NULL, (size_t*)&msh.ele.sz, NULL, 0, NULL, &ocl.event);     //for pump
+            ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, ele_rhs, 3, NULL, (size_t*)&msh.ele.sz, NULL, 0, NULL, &ocl.event);     //pump
             
             //ie jacobi
             for(int k=0; k<10; k++)
