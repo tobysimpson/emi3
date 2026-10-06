@@ -51,12 +51,16 @@ void ocl_ini(struct ocl_obj *ocl)
     ocl->context        = clCreateContext(NULL, ocl->num_devices, &ocl->device_id, NULL, NULL, &ocl->err);              //context
     ocl->command_queue  = clCreateCommandQueue(ocl->context, ocl->device_id, 0, &ocl->err);     //command queue         //CL_QUEUE_PROFILING_ENABLE
     
-    ocl->err            = clGetDeviceInfo(ocl->device_id, CL_DEVICE_NAME,         50, &ocl->device_char, NULL);         //CL_DEVICE_NAME,
-//    ocl->err            = clGetDeviceInfo(ocl->device_id, CL_DEVICE_ADDRESS_BITS,  4, &ocl->device_uint, NULL);         //CL_DEVICE_ADDRESS_BITS
-
+    ocl->err            = clGetDeviceInfo(ocl->device_id, CL_DEVICE_NAME,    50, &ocl->device_char, NULL);         //CL_DEVICE_NAME, CL_DEVICE_VERSION
     printf("%s\n", ocl->device_char);
+    
+    ocl->err            = clGetDeviceInfo(ocl->device_id, CL_DEVICE_VERSION, 50, &ocl->device_char, NULL);         //CL_DEVICE_NAME, CL_DEVICE_VERSION
+    printf("%s\n", ocl->device_char);
+    
+//    ocl->err            = clGetDeviceInfo(ocl->device_id, CL_DEVICE_ADDRESS_BITS,  4, &ocl->device_uint, NULL);         //CL_DEVICE_ADDRESS_BITS
 //    printf("%u\n", ocl->device_uint);
-
+    
+    
     /*
      =============================
      program

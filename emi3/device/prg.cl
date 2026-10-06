@@ -145,8 +145,6 @@ kernel void ele_ini(const  struct msh_obj   msh,
 
 
 
-
-
 /*
  =============================
  implicit
@@ -196,7 +194,7 @@ kernel void ele_jac(const  struct msh_obj   msh,
 //            float2 e1 = ee1[edg_typ];
             
             //grad
-            int     dg = adj_geo - ele_geo;
+            int     dg = adj_geo - ele_geo; //direction
             float2  du = adj_u - ele_u;
             
             //voltage (wrt membrane)
@@ -233,6 +231,19 @@ kernel void ele_rhs(const  struct msh_obj   msh,
     int   ele_idx  = utl_idx(ele_pos, msh.ele.dim);
     
 //    printf("%02d [%v3d]\n", ele_idx, ele_pos);
+    
+//    //debug print
+//    if(all(ele_pos==msh.ele.dim/2))
+//    {
+//        int3    adj_pos = ele_pos + (int3){-1,0,0};
+//        int     adj_idx = utl_idx(adj_pos, msh.ele.dim);
+//        
+//        float2  du = uu[adj_idx] - uu[ele_idx];
+//        float   v = -1e0f*(du.x + du.y); //arbitrary sign for plot
+//        
+////        printf("%03d [%v3d]\n", ele_idx, ele_pos);
+//        printf("%+f %+f %+f\n", du.x, du.y, v);
+//    }
     
     //diag, off-diag
     float2 d = 0.0f;
@@ -359,99 +370,3 @@ kernel void ele_exp(const  struct msh_obj   msh,
 
     return;
 }
-
-
-
-/*
- =============================
- ie pump/diff works
- =============================
- */
-
-/*
- 
-
-//ie rhs
-kernel void vxl_rhs(const  struct msh_obj    vxl,
-                    global int              *gg,
-                    global float2           *uu,
-                    global float2           *bb)
-{
-    int3  ele_pos  = (int3){get_global_id(0), get_global_id(1), get_global_id(2)};
-    int   ele_idx  = utl_idx(ele_pos, vxl.ele.dim);
-    
-    float2 s = 0.0f;
-    
-    //stencil
-    for(int i=0; i<6; i++)
-    {
-        int3    adj_pos = ele_pos + off[i];
-        int     adj_idx = utl_idx(adj_pos, vxl.ele.dim);
-        int     adj_bnd = utl_bnd(adj_pos, vxl.ele.dim);
-        
-        if(adj_bnd)
-        {
-            int cnd_idx = gg[ele_idx]*3 + gg[adj_idx];      //lookup
-            
-            float2 p1 = pp1[cnd_idx];                       //pump cond
-            float2 p2 = pp2[cnd_idx];                       //pump level
-            
-            s += p1*p2;
-        }
-    }
-    
-    //constants
-    float2 alp = vxl.dt;    //no dx pot diff. not grad
-    
-    //write
-    bb[ele_idx] = uu[ele_idx] + alp*s;
-
-    return;
-}
-
-
-
-//ie jacobi
-kernel void vxl_jac(const  struct msh_obj    vxl,
-                    global int              *gg,
-                    global float2           *uu,
-                    global float2           *bb)
-{
-    int3  ele_pos  = (int3){get_global_id(0), get_global_id(1), get_global_id(2)};
-    int   ele_idx  = utl_idx(ele_pos, vxl.ele.dim);
-    
-    float2 s = 0.0f;
-    float2 d = 0.0f;
-    
-    //stencil
-    for(int i=0; i<6; i++)
-    {
-        int3    adj_pos = ele_pos + off[i];
-        int     adj_idx = utl_idx(adj_pos, vxl.ele.dim);
-        int     adj_bnd = utl_bnd(adj_pos, vxl.ele.dim);
-        
-        if(adj_bnd)
-        {
-            int cnd_idx = gg[ele_idx]*3 + gg[adj_idx];      //lookup (?? needs to be clearer)
-            
-            float2 c1 = cc1[cnd_idx];                        //passive conductivity
-            float2 p1 = pp1[cnd_idx];                        //pump conductivity
-            
-            d -= (c1+p1);
-            s += (c1+p1)*uu[adj_idx];
-        }
-    }
-    
-    //constants
-    float2 alp = vxl.dt*vxl.rdx2;
-    
-    //ie
-    uu[ele_idx] = (bb[ele_idx] + alp*s)/(1e0f - alp*d);
-
-    return;
-}
-
- */
- 
-
-

@@ -35,10 +35,10 @@ int main(int argc, const char * argv[])
     
     //mesh
     struct msh_obj msh;
-    msh.nt = 100;
-    msh.dt = 1e2f;
+    msh.nt = 1000;
+    msh.dt = 1e-1f;
     msh.dx = 1e-0f;
-    msh.ele.dim = (cl_int3){10,1,100};
+    msh.ele.dim = (cl_int3){100,100,100};
     msh_ini(&msh);
     
     //memory
@@ -52,7 +52,6 @@ int main(int argc, const char * argv[])
     cl_kernel ele_jac = clCreateKernel(ocl.program, "ele_jac", &ocl.err);
     cl_kernel ele_rhs = clCreateKernel(ocl.program, "ele_rhs", &ocl.err);
     
-
     //args
     ocl.err = clSetKernelArg(ele_ini, 0, sizeof(struct msh_obj),   (void*)&msh);
     ocl.err = clSetKernelArg(ele_ini, 1, sizeof(cl_mem),           (void*)&gg);
@@ -73,7 +72,7 @@ int main(int argc, const char * argv[])
     ocl.err = clSetKernelArg(ele_rhs, 1, sizeof(cl_mem),           (void*)&gg);
     ocl.err = clSetKernelArg(ele_rhs, 2, sizeof(cl_mem),           (void*)&uu);
     ocl.err = clSetKernelArg(ele_rhs, 3, sizeof(cl_mem),           (void*)&bb);
-    
+
     
     //init
     ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, ele_ini, 3, NULL, (size_t*)&msh.ele.sz, NULL, 0, NULL, &ocl.event);
@@ -81,10 +80,14 @@ int main(int argc, const char * argv[])
     //write
     file_write(&ocl, "gg", &gg, msh.ele.tot, sizeof(cl_int), 0);
     
+    //dsp dims
+//    size_t dsp_off[3] = {0,0,0};
+//    size_t dsp_dim[3] = {1,1,1};
+    
     //frames
     for(int i=0; i<msh.nt; i++)
     {
-//        printf("i %02d\n", i);
+//        printf("i %02d %d\n", i, ocl.err);
         
         //write
         write_xmf(&msh, i);
@@ -99,7 +102,7 @@ int main(int argc, const char * argv[])
         ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, ele_rhs, 3, NULL, (size_t*)&msh.ele.sz, NULL, 0, NULL, &ocl.event);     //pump
         
         //ie jacobi
-        for(int k=0; k<10; k++)
+        for(int k=0; k<100; k++)
         {
             ocl.err = clEnqueueNDRangeKernel(ocl.command_queue, ele_jac, 3, NULL, (size_t*)&msh.ele.sz, NULL, 0, NULL, &ocl.event);
         }
@@ -126,7 +129,7 @@ int main(int argc, const char * argv[])
     ocl.err = clReleaseKernel(ele_exp);
     ocl.err = clReleaseKernel(ele_jac);
     ocl.err = clReleaseKernel(ele_rhs);
-    
+
     //final
     ocl_fin(&ocl);
     
